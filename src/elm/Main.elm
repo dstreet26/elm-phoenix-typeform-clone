@@ -9,6 +9,12 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Model exposing (..)
+import Tachyons exposing (classes, tachyons)
+
+
+--import Tachyons.Classes exposing (f1, purple, pointer, b)
+
+import Tachyons.Classes exposing (..)
 
 
 --import Model exposing (..)
@@ -102,39 +108,50 @@ styles =
 
 view : Model -> Html Msg
 view model =
-    div [ class "container", style [ ( "margin-top", "30px" ), ( "text-align", "center" ) ] ]
-        [ -- inline CSS (literal)
-          div [ class "row" ]
-            [ div [ class "col-xs-12" ]
-                [ div [ class "jumbotron" ]
-                    [ img [ src "static/img/elm.jpg", style styles.img ] []
-                      -- inline CSS (via var)
-                    , hello model.value
-                      -- ext 'hello' component (takes 'model' as arg)
-                    , p [] [ text ("Elm Webpack Starter") ]
-                    , button [ class "btn btn-primary btn-lg", onClick Increment ]
-                        [ -- click handler
-                          span [ class "glyphicon glyphicon-star" ] []
-                          -- glyphicon
-                        , span [] [ text "FTW!" ]
-                        ]
-                    ]
-                ]
+    section [ classes [ w_100, fl, bg_green ] ]
+        [ hello model.value
+        , button [ class "btn btn-primary btn-lg", onClick Increment ]
+            [ span [ class "glyphicon glyphicon-star" ] []
+            , span [] [ text "FTW!" ]
             ]
         , div [ class "row" ]
-            [ viewFormExample model
+            [ viewTachyonsTest model
+            , viewFormExample model
             ]
         ]
 
 
+
+--view : Model -> Html Msg
+--view model =
+--    div [ class "container", style [ ( "margin-top", "30px" ), ( "text-align", "center" ) ] ]
+--        [ div [ class "row" ]
+--            [ div [ class "col-xs-12" ]
+--                [ div [ class "jumbotron" ]
+--                    [ hello model.value
+--                    , button [ class "btn btn-primary btn-lg", onClick Increment ]
+--                        [ span [ class "glyphicon glyphicon-star" ] []
+--                        , span [] [ text "FTW!" ]
+--                        ]
+--                    ]
+--                ]
+--            ]
+--        , div [ class "row" ]
+--            [ viewTachyonsTest model
+--            , viewFormExample model
+--            ]
+--        ]
+--<link rel="stylesheet" href="https://unpkg.com/tachyons@4.6.1/css/tachyons.min.css">
+
+
+viewTachyonsTest : Model -> Html Msg
+viewTachyonsTest model =
+    div [ classes [ f1, purple, pointer, Tachyons.Classes.b ] ]
+        [ text "I'm Purple and big!"
+        ]
+
+
 viewFormExample : Model -> Html Msg
-
-
-
---viewFormExample model =
---    div [] [ text "hey" ]
-
-
 viewFormExample model =
     div
         []
@@ -221,7 +238,7 @@ todosView form =
             [ class "row" ]
             [ colN 3
                 [ label [ class "control-label" ] [ text "Todolist" ]
-                , br [] []
+                , Html.br [] []
                 , button [ onClick (Form.Append "todos"), class "btn btn-xs btn-default" ] [ text "Add" ]
                 ]
             , colN 9
@@ -254,5 +271,5 @@ todoItemView form i =
                     [ text "Remove" ]
                 ]
             ]
-        , br [] []
+        , Html.br [] []
         ]
