@@ -30,7 +30,6 @@ type alias Flags =
 
 type alias Model =
     { value : Int
-    , form : Form CustomError User
     , userMaybe : Maybe User
     }
 

@@ -1,3 +1,7 @@
+--Bootstrap Utilities
+--TODO: remove if not using
+
+
 module View.Bootstrap exposing (..)
 
 import Html exposing (..)

@@ -10,20 +10,9 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Model exposing (..)
 import Tachyons exposing (classes, tachyons)
-
-
---import Tachyons.Classes exposing (f1, purple, pointer, b)
-
 import Tachyons.Classes exposing (..)
-
-
---import Model exposing (..)
-
-import Regex
-import Set exposing (Set)
-import String
-import View.Bootstrap exposing (..)
 import Views.Hello exposing (hello)
+import View.ViewHelpers exposing (mybold)
 
 
 main =
@@ -31,7 +20,6 @@ main =
 
 
 
---Placeholder flags
 --Placeholder Subscriptions
 
 
@@ -42,7 +30,6 @@ subscriptions model =
 
 emptyModel =
     { value = 0
-    , form = Form.initial initialFields validate
     , userMaybe = Nothing
     }
 
@@ -60,35 +47,16 @@ init flags =
 type Msg
     = NoOp
     | Increment
-    | FormMsg Form.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-
-
-
---update msg model =
-
-
-update msg ({ form } as model) =
+update msg model =
     case msg of
         NoOp ->
             ( model, Cmd.none )
 
         Increment ->
             ( { model | value = model.value + 1 }, Cmd.none )
-
-        FormMsg formMsg ->
-            case ( formMsg, Form.getOutput form ) of
-                ( Form.Submit, Just user ) ->
-                    ( { model | userMaybe = Just user }, Cmd.none )
-
-                _ ->
-                    ( { model | form = Form.update validate formMsg form }, Cmd.none )
-
-
-
--- CSS STYLES
 
 
 styles : { img : List ( String, String ) }
@@ -98,12 +66,6 @@ styles =
         , ( "border", "4px solid #337AB7" )
         ]
     }
-
-
-
--- VIEW
--- Html is defined as: elem [ attribs ][ children ]
--- CSS can be applied via class names or inline style attrib
 
 
 view : Model -> Html Msg
@@ -116,160 +78,13 @@ view model =
             ]
         , div [ class "row" ]
             [ viewTachyonsTest model
-            , viewFormExample model
+            , mybold "hey"
             ]
         ]
-
-
-
---view : Model -> Html Msg
---view model =
---    div [ class "container", style [ ( "margin-top", "30px" ), ( "text-align", "center" ) ] ]
---        [ div [ class "row" ]
---            [ div [ class "col-xs-12" ]
---                [ div [ class "jumbotron" ]
---                    [ hello model.value
---                    , button [ class "btn btn-primary btn-lg", onClick Increment ]
---                        [ span [ class "glyphicon glyphicon-star" ] []
---                        , span [] [ text "FTW!" ]
---                        ]
---                    ]
---                ]
---            ]
---        , div [ class "row" ]
---            [ viewTachyonsTest model
---            , viewFormExample model
---            ]
---        ]
---<link rel="stylesheet" href="https://unpkg.com/tachyons@4.6.1/css/tachyons.min.css">
 
 
 viewTachyonsTest : Model -> Html Msg
 viewTachyonsTest model =
     div [ classes [ f1, purple, pointer, Tachyons.Classes.b ] ]
         [ text "I'm Purple and big!"
-        ]
-
-
-viewFormExample : Model -> Html Msg
-viewFormExample model =
-    div
-        []
-        [ Html.map FormMsg (formView model.form)
-        , case model.userMaybe of
-            Just user ->
-                p [ class "alert alert-success" ] [ text (toString user) ]
-
-            Nothing ->
-                text ""
-        ]
-
-
-formView : Form CustomError User -> Html Form.Msg
-formView form =
-    let
-        roleOptions =
-            ( "", "--" ) :: (List.map (\i -> ( i, String.toUpper i )) roles)
-
-        superpowerOptions =
-            List.map (\i -> ( i, String.toUpper i )) superpowers
-
-        disableSubmit =
-            Set.isEmpty <| Form.getChangedFields form
-
-        submitBtnAttributes =
-            [ onClick Form.Submit
-            , classList
-                [ ( "btn btn-primary", True )
-                , ( "disabled", disableSubmit )
-                ]
-            ]
-                ++ if disableSubmit then
-                    [ attribute "disabled" "true" ]
-                   else
-                    []
-    in
-        div
-            [ class "form-horizontal"
-            , style [ ( "margin", "50px auto" ), ( "width", "600px" ) ]
-            ]
-            [ legend [] [ text "Elm Simple Form example" ]
-            , textGroup (text "Name")
-                (Form.getFieldAsString "name" form)
-            , textGroup (text "Email address")
-                (Form.getFieldAsString "email" form)
-            , checkboxGroup (text "Administrator")
-                (Form.getFieldAsBool "admin" form)
-            , dateGroup (text "Date")
-                (Form.getFieldAsString "date" form)
-            , textGroup (text "Website")
-                (Form.getFieldAsString "profile.website" form)
-            , selectGroup roleOptions
-                (text "Role")
-                (Form.getFieldAsString "profile.role" form)
-            , radioGroup superpowerOptions
-                (text "Superpower")
-                (Form.getFieldAsString "profile.superpower" form)
-            , textGroup (text "Age")
-                (Form.getFieldAsString "profile.age" form)
-            , textAreaGroup (text "Bio")
-                (Form.getFieldAsString "profile.bio" form)
-            , todosView form
-            , formActions
-                [ button submitBtnAttributes
-                    [ text "Submit" ]
-                , text " "
-                , button
-                    [ onClick (Form.Reset initialFields)
-                    , class "btn btn-default"
-                    ]
-                    [ text "Reset" ]
-                ]
-            ]
-
-
-todosView : Form CustomError User -> Html Form.Msg
-todosView form =
-    let
-        allTodos =
-            List.concatMap (todoItemView form) (Form.getListIndexes "todos" form)
-    in
-        div
-            [ class "row" ]
-            [ colN 3
-                [ label [ class "control-label" ] [ text "Todolist" ]
-                , Html.br [] []
-                , button [ onClick (Form.Append "todos"), class "btn btn-xs btn-default" ] [ text "Add" ]
-                ]
-            , colN 9
-                [ div [ class "todos" ] allTodos
-                ]
-            ]
-
-
-todoItemView : Form CustomError User -> Int -> List (Html Form.Msg)
-todoItemView form i =
-    let
-        labelField =
-            Form.getFieldAsString ("todos." ++ (toString i) ++ ".label") form
-    in
-        [ div
-            [ class ("input-group" ++ (errorClass labelField.liveError)) ]
-            [ span
-                [ class "input-group-addon" ]
-                [ Input.checkboxInput
-                    (Form.getFieldAsBool ("todos." ++ (toString i) ++ ".done") form)
-                    []
-                ]
-            , Input.textInput
-                labelField
-                [ class "form-control" ]
-            , span
-                [ class "input-group-btn" ]
-                [ button
-                    [ onClick (Form.RemoveItem "todos" i), class "btn btn-danger" ]
-                    [ text "Remove" ]
-                ]
-            ]
-        , Html.br [] []
         ]
