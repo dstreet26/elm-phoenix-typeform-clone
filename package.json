@@ -1,18 +1,16 @@
 {
-  "name": "elm-webpack-starter",
-  "description": "Webpack setup for writing Elm apps",
-  "version": "0.8.6",
-  "license": "MIT",
-  "author": "Peter Morawiec",
+  "name": "elm-typeform-clone",
+  "description": "A clone of https://www.typeform.com/ written in Elm",
+  "version": "0.0.1",
+  "license": "ISC",
+  "author": "David Streeter",
   "repository": {
     "type": "git",
-    "url": "https://github.com/moarwick/elm-webpack-starter"
+    "url": "https://github.com/dstreet26/elm-typeform-clone"
   },
   "scripts": {
-    "start": "webpack-dev-server --hot --inline",
-    "prebuild": "rimraf dist",
-    "build": "webpack",
-    "reinstall": "npm i rimraf && rimraf node_modules && npm uninstall -g elm && npm i -g elm && npm i && elm package install"
+    "dev": "webpack-dev-server --hot --inline",
+    "build": "webpack"
   },
   "devDependencies": {
     "autoprefixer": "^6.7.7",
