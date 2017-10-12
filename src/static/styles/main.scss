@@ -3,3 +3,10 @@ $icon-font-path: '~bootstrap-sass/assets/fonts/bootstrap/';
 @import '~bootstrap-sass/assets/stylesheets/_bootstrap.scss';
 
 // can add Boostrap overrides, additional Sass/CSS below...
+
+$typeform-blue: #E5F3F5;
+
+.bg-typeform-blue {
+	background-color: $typeform-blue
+
+}
