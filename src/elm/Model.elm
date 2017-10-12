@@ -37,6 +37,19 @@ type alias Model =
     }
 
 
+type alias TopSection =
+    { imageLink : String
+    , colorText : String
+    , colorButton : String
+    , colorButtonBackground : String
+    , colorButtonHover : String
+    , colorGray : String
+    , headerText : String
+    , buttonText : String
+    , pressText : String
+    }
+
+
 type CustomError
     = Ooops
     | Nope
