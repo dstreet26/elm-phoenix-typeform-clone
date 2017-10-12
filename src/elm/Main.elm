@@ -34,7 +34,7 @@ subscriptions model =
 
 emptyModel =
     { value = 0
-    , userMaybe = Nothing
+    , demoData = Demo.demoData
     }
 
 
@@ -44,7 +44,6 @@ emptyModel =
 
 init : Maybe Flags -> ( Model, Cmd Msg )
 init flags =
-    --Maybe.withDefault emptyModel flags ! []
     emptyModel ! []
 
 
@@ -72,26 +71,10 @@ styles =
     }
 
 
-topSectionOptions : Model.TopSection
-topSectionOptions =
-    { imageLink = "static/img/typeform-example-face.png"
-    , colorText = "color-1"
-    , colorButton = "color-3"
-    , colorButtonBackground = "bg-typeform-blue2"
-    , colorButtonHover = "typeform-button-hover"
-    , colorGray = "color-5"
-    , headerText = "Hey stranger, I'm dying to get to know you better!"
-    , buttonText = "Talk to me"
-    , pressText = "press ENTER"
-    }
-
-
 view : Model -> Html Msg
 view model =
     div [ classes [ fl, w_100 ], class "bg-typeform-blue montserrat color-1" ]
-        [ Demo.viewTopSection topSectionOptions
-        , Demo.viewFirstQuestion model
-        , Demo.viewSecondQuestion model
+        [ Demo.demo model.demoData
         ]
 
 
