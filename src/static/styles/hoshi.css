@@ -1,0 +1,101 @@
+.input--hoshi {
+    position: relative;
+    z-index: 1;
+    display: inline-block;
+
+
+    width: calc(100% - 2em);
+    vertical-align: top;
+    overflow: hidden;
+}
+
+
+
+.input__field--hoshi {
+    position: relative;
+    display: block;
+    float: right;
+    border: none;
+    border-radius: 0;
+
+
+    -webkit-appearance: none;
+
+
+    padding: 0.85em 0.15em;
+    width: 100%;
+    background: transparent;
+    color: #595F6E;
+}
+
+.input__field--hoshi:focus {
+    outline: none;
+}
+
+.input__label--hoshi {
+    display: inline-block;
+    float: right;
+    color: #6a7989;
+    font-weight: bold;
+    font-size: 70.25%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    padding: 0 0.25em;
+    width: 100%;
+    height: calc(100% - 1em);
+    text-align: left;
+    pointer-events: none;
+}
+
+
+
+.input__label--hoshi:before,
+.input__label--hoshi:after {
+
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 10px);
+    border-bottom: 1px solid #B9C1CA;
+}
+
+.input__label--hoshi:after {
+
+    margin-top: 2px;
+    border-bottom: 4px solid red;
+    -webkit-transform: translate3d(-100%, 0, 0);
+    transform: translate3d(-100%, 0, 0);
+    -webkit-transition: -webkit-transform 0.3s;
+    transition: transform 0.3s;
+}
+
+.input__field--hoshi:focus+.input__label--hoshi::after,
+.input--filled .input__label--hoshi::after {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+}
+
+.input__field--hoshi:focus+.input__label--hoshi .input__label-content--hoshi,
+.input--filled .input__label-content--hoshi {
+    -webkit-animation: anim-1 0.3s forwards;
+    animation: anim-1 0.3s forwards;
+}
+
+
+
+
+.hoshi-color-4::after {
+    border-color: #275b62;
+}
