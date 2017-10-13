@@ -12,6 +12,7 @@ demoData : DemoData
 demoData =
     { topSection = demoTopSection
     , firstQuestion = demoFirstQuestion
+    , secondQuestion = demoSecondQuestion
     , name = "hey"
     , colors = demoColors
     }
@@ -33,7 +34,7 @@ demo data =
     div []
         [ viewTopSection data.topSection data.colors
         , viewFirstQuestion data.firstQuestion data.colors
-        , viewSecondQuestion data.topSection
+        , viewSecondQuestion data.secondQuestion data.colors
         ]
 
 
@@ -49,10 +50,21 @@ demoTopSection =
 demoFirstQuestion : FirstQuestion
 demoFirstQuestion =
     { questionNumber = "1"
-    , headerText = ". What's your name?*"
-    , headerTextBold = "Hello"
+    , questionText = "*Hello*. What's your name?*"
     , pressText = "press ENTER"
     , buttonText = "OK"
+    }
+
+
+demoSecondQuestion : SecondQuestion
+demoSecondQuestion =
+    { questionNumber = "2"
+    , questionText = "Hi, asdf. What's your *gender*?"
+    , choices =
+        [ { letter = "A", body = "hey" }
+        , { letter = "B", body = "still hardcoded" }
+        , { letter = "C", body = "but safer" }
+        ]
     }
 
 
@@ -73,7 +85,7 @@ viewTopSection options colors =
             , Html.Attributes.src options.imageLink
             ]
             []
-        , p [ classes [], class colors.colorText ] [ text options.headerText ]
+        , p [ classes [] ] [ text options.headerText ]
         , div []
             [ button
                 [ classes
@@ -108,17 +120,7 @@ viewFirstQuestion options colors =
             , Tachyons.Classes.vh_100
             ]
         ]
-        [ span [ classes [ Tachyons.Classes.pr2 ], class colors.colorGray ]
-            [ span [ classes [ Tachyons.Classes.pr1 ] ]
-                [ text options.questionNumber ]
-            , span [ class "fa fa-arrow-right" ]
-                []
-            ]
-        , span []
-            [ Html.b []
-                [ text options.headerTextBold ]
-            , text options.headerText
-            ]
+        [ questionText colors options.questionNumber options.questionText
         , div [ classes [ Tachyons.Classes.ml3 ], class "input--hoshi" ]
             [ input [ class "input__field--hoshi", id "input-4", type_ "text" ]
                 []
@@ -161,7 +163,8 @@ typeformButton =
     ]
 
 
-viewSecondQuestion model =
+viewSecondQuestion : SecondQuestion -> DemoColors -> Html msg
+viewSecondQuestion options colors =
     div []
         [ div
             [ classes
@@ -171,28 +174,38 @@ viewSecondQuestion model =
                 , Tachyons.Classes.vh_100
                 ]
             ]
-            [ span [ classes [ Tachyons.Classes.pr2 ] ]
-                [ span [ classes [ Tachyons.Classes.pr1 ], class "color-5" ]
-                    [ text "2" ]
-                , span [ class " color-5 fa fa-arrow-right" ]
-                    []
-                ]
-            , span []
-                [ text "Hi, asdf. What's your "
-                , Html.b []
-                    [ text "gender" ]
-                , text "?"
-                ]
+            [ questionText colors options.questionNumber options.questionText
             , ul
                 [ classes
                     [ Tachyons.Classes.list
-                    , Tachyons.Classes.mw5
+                    , Tachyons.Classes.mw6
                     ]
-                , class "color-5"
+                , class colors.colorGray
                 ]
-                [ liElement "A" "hey"
-                , liElement "B" "hey"
-                , liElement "X" "hardcoded!"
+                (listChoices options.choices)
+            ]
+        ]
+
+
+listChoices choices =
+    List.map
+        (\choice ->
+            liElement choice.letter choice.body
+        )
+        choices
+
+
+questionText colors questionNumber body =
+    div []
+        [ span [ classes [ Tachyons.Classes.pr2 ] ]
+            [ span [ class colors.colorGray ]
+                [ span [ classes [ Tachyons.Classes.pr1 ] ]
+                    [ text questionNumber ]
+                , span [ class "fa fa-arrow-right" ]
+                    []
                 ]
+            ]
+        , span []
+            [ text body
             ]
         ]

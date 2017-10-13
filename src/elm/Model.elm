@@ -37,9 +37,17 @@ type alias Model =
     }
 
 
+
+--type alias Question = {
+--}
+
+
 type alias DemoData =
-    { topSection : TopSection
+    { topSection :
+        TopSection
+        --, questions : List Question
     , firstQuestion : FirstQuestion
+    , secondQuestion : SecondQuestion
     , name : String
     , colors : DemoColors
     }
@@ -55,6 +63,14 @@ type alias DemoColors =
     }
 
 
+type alias TopSection =
+    { imageLink : String
+    , headerText : String
+    , buttonText : String
+    , pressText : String
+    }
+
+
 type alias FirstQuestion =
     { questionNumber : String
     , headerText : String
@@ -64,11 +80,17 @@ type alias FirstQuestion =
     }
 
 
-type alias TopSection =
-    { imageLink : String
+type alias Choice =
+    { letter : String
+    , body : String
+    }
+
+
+type alias SecondQuestion =
+    { questionNumber : String
     , headerText : String
-    , buttonText : String
-    , pressText : String
+    , headerTextBold : String
+    , choices : List Choice
     }
 
 
