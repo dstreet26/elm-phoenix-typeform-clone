@@ -11,8 +11,7 @@ import View.ViewHelpers exposing (liElement)
 demoData : DemoData
 demoData =
     { topSection = demoTopSection
-    , firstQuestion = demoFirstQuestion
-    , secondQuestion = demoSecondQuestion
+    , questions = [ QuestionTypeText demoFirstQuestion, QuestionTypeSelect demoSecondQuestion ]
     , name = "hey"
     , colors = demoColors
     }
@@ -33,9 +32,25 @@ demo : DemoData -> Html msg
 demo data =
     div []
         [ viewTopSection data.topSection data.colors
-        , viewFirstQuestion data.firstQuestion data.colors
-        , viewSecondQuestion data.secondQuestion data.colors
+        , div [] (mapasdf data.questions data.colors)
         ]
+
+
+mapasdf questions colors =
+    List.map
+        (\question ->
+            viewQuestion question colors
+        )
+        questions
+
+
+viewQuestion question colors =
+    case question of
+        QuestionTypeText asdf ->
+            viewTextQuestion asdf colors
+
+        QuestionTypeSelect asdf ->
+            viewSelectQuestion asdf colors
 
 
 demoTopSection : TopSection
@@ -47,7 +62,7 @@ demoTopSection =
     }
 
 
-demoFirstQuestion : FirstQuestion
+demoFirstQuestion : TextQuestion
 demoFirstQuestion =
     { questionNumber = "1"
     , questionText = "*Hello*. What's your name?*"
@@ -56,7 +71,7 @@ demoFirstQuestion =
     }
 
 
-demoSecondQuestion : SecondQuestion
+demoSecondQuestion : SelectQuestion
 demoSecondQuestion =
     { questionNumber = "2"
     , questionText = "Hi, asdf. What's your *gender*?"
@@ -110,8 +125,8 @@ viewTopSection options colors =
         ]
 
 
-viewFirstQuestion : FirstQuestion -> DemoColors -> Html msg
-viewFirstQuestion options colors =
+viewTextQuestion : TextQuestion -> DemoColors -> Html msg
+viewTextQuestion options colors =
     div
         [ classes
             [ Tachyons.Classes.mt6
@@ -163,8 +178,8 @@ typeformButton =
     ]
 
 
-viewSecondQuestion : SecondQuestion -> DemoColors -> Html msg
-viewSecondQuestion options colors =
+viewSelectQuestion : SelectQuestion -> DemoColors -> Html msg
+viewSelectQuestion options colors =
     div []
         [ div
             [ classes

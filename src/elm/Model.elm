@@ -37,17 +37,14 @@ type alias Model =
     }
 
 
-
---type alias Question = {
---}
+type Question
+    = QuestionTypeText TextQuestion
+    | QuestionTypeSelect SelectQuestion
 
 
 type alias DemoData =
-    { topSection :
-        TopSection
-        --, questions : List Question
-    , firstQuestion : FirstQuestion
-    , secondQuestion : SecondQuestion
+    { topSection : TopSection
+    , questions : List Question
     , name : String
     , colors : DemoColors
     }
@@ -71,10 +68,9 @@ type alias TopSection =
     }
 
 
-type alias FirstQuestion =
+type alias TextQuestion =
     { questionNumber : String
-    , headerText : String
-    , headerTextBold : String
+    , questionText : String
     , buttonText : String
     , pressText : String
     }
@@ -86,10 +82,9 @@ type alias Choice =
     }
 
 
-type alias SecondQuestion =
+type alias SelectQuestion =
     { questionNumber : String
-    , headerText : String
-    , headerTextBold : String
+    , questionText : String
     , choices : List Choice
     }
 
