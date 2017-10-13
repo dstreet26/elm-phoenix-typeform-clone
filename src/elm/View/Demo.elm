@@ -6,6 +6,7 @@ import Model exposing (..)
 import Tachyons exposing (classes, tachyons)
 import Tachyons.Classes exposing (..)
 import View.ViewHelpers exposing (liElement)
+import Markdown exposing (toHtml)
 
 
 demoData : DemoData
@@ -65,7 +66,7 @@ demoTopSection =
 demoFirstQuestion : TextQuestion
 demoFirstQuestion =
     { questionNumber = "1"
-    , questionText = "*Hello*. What's your name?*"
+    , questionText = "**Hello**. What's your name?*"
     , pressText = "press ENTER"
     , buttonText = "OK"
     }
@@ -74,7 +75,7 @@ demoFirstQuestion =
 demoSecondQuestion : SelectQuestion
 demoSecondQuestion =
     { questionNumber = "2"
-    , questionText = "Hi, asdf. What's your *gender*?"
+    , questionText = "Hi, asdf. What's your **gender**?"
     , choices =
         [ { letter = "A", body = "hey" }
         , { letter = "B", body = "still hardcoded" }
@@ -211,8 +212,8 @@ listChoices choices =
 
 
 questionText colors questionNumber body =
-    div []
-        [ span [ classes [ Tachyons.Classes.pr2 ] ]
+    div [ class "" ]
+        [ span [ classes [ Tachyons.Classes.pr2, Tachyons.Classes.fl ] ]
             [ span [ class colors.colorGray ]
                 [ span [ classes [ Tachyons.Classes.pr1 ] ]
                     [ text questionNumber ]
@@ -220,7 +221,6 @@ questionText colors questionNumber body =
                     []
                 ]
             ]
-        , span []
-            [ text body
-            ]
+        , span [] <|
+            toHtml Nothing body
         ]
