@@ -5,7 +5,7 @@ import Html.Attributes exposing (..)
 import Model exposing (..)
 import Tachyons exposing (classes, tachyons)
 import Tachyons.Classes exposing (..)
-import View.ViewHelpers exposing (liElement)
+import View.ViewHelpers exposing (liElement, topSectionButton, typeFormButton, buttonAsideText)
 import Markdown exposing (toHtml)
 
 
@@ -20,24 +20,28 @@ demoData =
 
 demoColors : DemoColors
 demoColors =
-    { colorMain = "color-1"
-    , colorText = "color-3"
-    , colorButton = "color-3"
-    , colorButtonBackground = "bg-typeform-blue2"
-    , colorButtonHover = "typeform-button-hover"
-    , colorGray = "color-5"
+    { colorMain = "#5fb4bf"
+    , colorBackground = "#E5F3F5"
+    , colorText = "#275b62"
+    , colorButton = "#275b62"
+    , colorButtonBackground = "#73BEC8"
+    , colorButtonHover = "#98cfd6"
+    , colorGray = "#696969"
+    , colorSelectBackground = "#DFEDEE"
+    , colorSelectHover = "#CCD7D9"
+    , colorSelectLetterBackground = "#C7D2D4"
     }
 
 
 demo : DemoData -> Html msg
 demo data =
-    div []
+    div [ Html.Attributes.style [ ( "color", data.colors.colorMain ), ( "backgroundColor", data.colors.colorBackground ) ] ]
         [ viewTopSection data.topSection data.colors
-        , div [] (mapasdf data.questions data.colors)
+        , div [] (mapQuestions data.questions data.colors)
         ]
 
 
-mapasdf questions colors =
+mapQuestions questions colors =
     List.map
         (\question ->
             viewQuestion question colors
@@ -47,11 +51,11 @@ mapasdf questions colors =
 
 viewQuestion question colors =
     case question of
-        QuestionTypeText asdf ->
-            viewTextQuestion asdf colors
+        QuestionTypeText options ->
+            viewTextQuestion options colors
 
-        QuestionTypeSelect asdf ->
-            viewSelectQuestion asdf colors
+        QuestionTypeSelect options ->
+            viewSelectQuestion options colors
 
 
 demoTopSection : TopSection
@@ -101,27 +105,10 @@ viewTopSection options colors =
             , Html.Attributes.src options.imageLink
             ]
             []
-        , p [ classes [] ] [ text options.headerText ]
+        , p [ classes [] ] [ Html.text options.headerText ]
         , div []
-            [ button
-                [ classes
-                    [ Tachyons.Classes.button_reset
-                    , Tachyons.Classes.b
-                    , Tachyons.Classes.br2
-                    , Tachyons.Classes.pv2
-                    , Tachyons.Classes.ph4
-                    , Tachyons.Classes.bn
-                    , Tachyons.Classes.pointer
-                    , Tachyons.Classes.shadow_5
-                    ]
-                , classes
-                    [ colors.colorButton
-                    , colors.colorButtonBackground
-                    , colors.colorButtonHover
-                    ]
-                ]
-                [ span [] [ text options.buttonText ] ]
-            , span [ classes [ Tachyons.Classes.f6 ], class colors.colorGray ] [ text options.pressText ]
+            [ topSectionButton colors options.buttonText
+            , buttonAsideText options.pressText colors.colorGray
             ]
         ]
 
@@ -137,10 +124,10 @@ viewTextQuestion options colors =
             ]
         ]
         [ questionText colors options.questionNumber options.questionText
-        , div [ classes [ Tachyons.Classes.ml3 ], class "input--hoshi" ]
-            [ input [ class "input__field--hoshi", id "input-4", type_ "text" ]
+        , div [ classes [ Tachyons.Classes.ml3 ], Html.Attributes.class "input--hoshi" ]
+            [ input [ Html.Attributes.class "input__field--hoshi", Html.Attributes.id "input-4", type_ "text" ]
                 []
-            , label [ class "input__label--hoshi hoshi-color-4", for "input-4" ]
+            , label [ Html.Attributes.class "input__label--hoshi hoshi-color-4", for "input-4" ]
                 []
             ]
         , div
@@ -149,34 +136,12 @@ viewTextQuestion options colors =
                 , Tachyons.Classes.ml3
                 ]
             ]
-            [ button
-                typeformButton
-                [ span []
-                    [ text options.buttonText ]
-                , span [ class "fa fa-check" ]
-                    []
-                ]
-            , span [ classes [ Tachyons.Classes.f6 ], class "color-5" ]
-                [ text options.pressText ]
+            [ typeFormButton colors options.buttonText
+            , buttonAsideText options.pressText colors.colorGray
             ]
         , Html.br []
             []
         ]
-
-
-typeformButton =
-    [ classes
-        [ Tachyons.Classes.button_reset
-        , Tachyons.Classes.b
-        , Tachyons.Classes.br2
-        , Tachyons.Classes.pv2
-        , Tachyons.Classes.ph3
-        , Tachyons.Classes.bn
-        , Tachyons.Classes.pointer
-        , Tachyons.Classes.shadow_5
-        ]
-    , class "bg-typeform-blue2 color-3 typeform-button-hover"
-    ]
 
 
 viewSelectQuestion : SelectQuestion -> DemoColors -> Html msg
@@ -196,28 +161,28 @@ viewSelectQuestion options colors =
                     [ Tachyons.Classes.list
                     , Tachyons.Classes.mw6
                     ]
-                , class colors.colorGray
+                , Html.Attributes.style [ ( "color", colors.colorGray ) ]
                 ]
-                (listChoices options.choices)
+                (listChoices options.choices colors)
             ]
         ]
 
 
-listChoices choices =
+listChoices choices colors =
     List.map
         (\choice ->
-            liElement choice.letter choice.body
+            liElement choice.letter choice.body colors.colorSelectBackground colors.colorSelectHover colors.colorSelectLetterBackground
         )
         choices
 
 
 questionText colors questionNumber body =
-    div [ class "" ]
+    div [ Html.Attributes.class "" ]
         [ span [ classes [ Tachyons.Classes.pr2, Tachyons.Classes.fl ] ]
-            [ span [ class colors.colorGray ]
+            [ span [ Html.Attributes.style [ ( "color", colors.colorGray ) ] ]
                 [ span [ classes [ Tachyons.Classes.pr1 ] ]
-                    [ text questionNumber ]
-                , span [ class "fa fa-arrow-right" ]
+                    [ Html.text questionNumber ]
+                , span [ Html.Attributes.class "fa fa-arrow-right" ]
                     []
                 ]
             ]

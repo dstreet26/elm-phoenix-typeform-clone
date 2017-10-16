@@ -73,13 +73,6 @@ styles =
 
 view : Model -> Html Msg
 view model =
-    div [ classes [ fl, w_100 ], class "bg-typeform-blue montserrat color-1" ]
+    div [ classes [ fl, w_100 ], class "montserrat" ]
         [ Demo.demo model.demoData
-        ]
-
-
-viewTachyonsTest : Model -> Html Msg
-viewTachyonsTest model =
-    div [ classes [ f1, purple, pointer, Tachyons.Classes.b ] ]
-        [ text "I'm Purple and big!"
         ]
