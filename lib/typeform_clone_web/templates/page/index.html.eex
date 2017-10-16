@@ -1,0 +1,9 @@
+<div id="elm-main">
+</div>
+<script>
+let embedElement = document.getElementById('elm-main')
+Elm.Main.embed(embedElement, {
+    user: 'testuser',
+    token: 'testtoken'
+})
+</script>
