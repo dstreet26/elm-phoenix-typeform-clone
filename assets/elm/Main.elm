@@ -17,6 +17,7 @@ import Tachyons.Classes exposing (..)
 import Views.Hello exposing (hello)
 import View.ViewHelpers exposing (mybold)
 import View.Demo as Demo exposing (..)
+import SmoothScroll exposing (scrollTo)
 
 
 main =
@@ -50,6 +51,7 @@ init flags =
 type Msg
     = NoOp
     | Increment
+    | ScrollTo2
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -60,6 +62,9 @@ update msg model =
 
         Increment ->
             ( { model | value = model.value + 1 }, Cmd.none )
+
+        ScrollTo2 ->
+            ( model, scrollTo "question2" )
 
 
 styles : { img : List ( String, String ) }
@@ -74,5 +79,6 @@ styles =
 view : Model -> Html Msg
 view model =
     div [ classes [ fl, w_100 ], class "montserrat" ]
-        [ Demo.demo model.demoData
+        [ div [] [ button [ Html.Events.onClick ScrollTo2 ] [ text "scrollto2" ] ]
+        , Demo.demo model.demoData
         ]

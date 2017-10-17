@@ -99,6 +99,7 @@ viewTopSection options colors =
             , Tachyons.Classes.tc
             , Tachyons.Classes.vh_100
             ]
+        , Html.Attributes.id "topsection"
         ]
         [ img
             [ classes []
@@ -122,6 +123,7 @@ viewTextQuestion options colors =
             , Tachyons.Classes.f3
             , Tachyons.Classes.vh_100
             ]
+        , Html.Attributes.id ("question" ++ options.questionNumber)
         ]
         [ questionText colors options.questionNumber options.questionText
         , div [ classes [ Tachyons.Classes.ml3 ], Html.Attributes.class "input--hoshi" ]
@@ -154,6 +156,7 @@ viewSelectQuestion options colors =
                 , Tachyons.Classes.f3
                 , Tachyons.Classes.vh_100
                 ]
+            , Html.Attributes.id ("question" ++ options.questionNumber)
             ]
             [ questionText colors options.questionNumber options.questionText
             , ul
