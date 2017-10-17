@@ -37,7 +37,8 @@ config :typeform_clone, TypeformCloneWeb.Endpoint,
       ~r{priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$},
       ~r{priv/gettext/.*(po)$},
       ~r{lib/typeform_clone_web/views/.*(ex)$},
-      ~r{lib/typeform_clone_web/templates/.*(eex)$}
+      ~r{lib/typeform_clone_web/templates/.*(eex)$},
+      ~r{assets/elm/.*(elm)$}
     ]
   ]
 

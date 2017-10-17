@@ -1,5 +1,6 @@
 <div id="elm-main">
 </div>
+<script src="<%= static_path(@conn, "/compiled_elm/main.js") %>"></script>
 <script>
 let embedElement = document.getElementById('elm-main')
 Elm.Main.embed(embedElement, {
