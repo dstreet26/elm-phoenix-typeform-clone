@@ -61,6 +61,8 @@ type alias DemoColors =
     , colorSelectBackground : String
     , colorSelectHover : String
     , colorSelectLetterBackground : String
+    , colorFooterBackground : String
+    , colorFooter : String
     }
 
 

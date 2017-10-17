@@ -43,12 +43,12 @@ liElementTachyons =
 
 
 topSectionButton colors buttonText =
-    button ((buttonTopTachyons) ++ (hoverStyles colors)) [ span [] [ Html.text buttonText ] ]
+    button ((buttonTopTachyons) ++ (hoverStyles colors.colorButton colors.colorButtonBackground colors.colorButtonHover)) [ span [] [ Html.text buttonText ] ]
 
 
 typeFormButton colors buttonText =
     button
-        ((buttonTypeformTachyons) ++ (hoverStyles colors))
+        ((buttonTypeformTachyons) ++ (hoverStyles colors.colorButton colors.colorButtonBackground colors.colorButtonHover))
         [ span []
             [ Html.text buttonText ]
         , span [ Html.Attributes.class "fa fa-check" ]
@@ -56,39 +56,50 @@ typeFormButton colors buttonText =
         ]
 
 
+typeFormFooterButton colorButton colorButtonBackground colorButtonHover isUp =
+    button
+        ((buttonTypeformTachyons) ++ (hoverStyles colorButton colorButtonBackground colorButtonHover))
+        [ span [ Html.Attributes.class (chevronUpOrDown isUp) ]
+            []
+        ]
+
+
+chevronUpOrDown isUp =
+    if isUp == True then
+        "fa fa-chevron-up"
+    else
+        "fa fa-chevron-down"
+
+
 buttonTopTachyons =
     [ classes
-        [ Tachyons.Classes.button_reset
-        , Tachyons.Classes.b
-        , Tachyons.Classes.br2
-        , Tachyons.Classes.pv2
-        , Tachyons.Classes.ph4
-        , Tachyons.Classes.bn
-        , Tachyons.Classes.pointer
-        , Tachyons.Classes.shadow_5
-        ]
+        ([ Tachyons.Classes.ph4 ] ++ buttonBaseTachyons)
     ]
 
 
 buttonTypeformTachyons =
     [ classes
-        [ Tachyons.Classes.button_reset
-        , Tachyons.Classes.b
-        , Tachyons.Classes.br2
-        , Tachyons.Classes.pv2
-        , Tachyons.Classes.ph3
-        , Tachyons.Classes.bn
-        , Tachyons.Classes.pointer
-        , Tachyons.Classes.shadow_5
-        ]
+        ([ Tachyons.Classes.ph3 ] ++ buttonBaseTachyons)
     ]
 
 
-hoverStyles colors =
+buttonBaseTachyons =
+    [ Tachyons.Classes.button_reset
+    , Tachyons.Classes.b
+    , Tachyons.Classes.br2
+    , Tachyons.Classes.pv2
+    , Tachyons.Classes.ph3
+    , Tachyons.Classes.bn
+    , Tachyons.Classes.pointer
+    , Tachyons.Classes.shadow_5
+    ]
+
+
+hoverStyles colorButton colorButtonBackground colorButtonHover =
     hover_
-        [ ( "color", colors.colorButton )
+        [ ( "color", colorButton )
         ]
-        [ ( "backgroundColor", colors.colorButtonBackground, colors.colorButtonHover ) ]
+        [ ( "backgroundColor", colorButtonBackground, colorButtonHover ) ]
 
 
 buttonAsideText asideText asideColor =

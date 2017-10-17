@@ -5,7 +5,7 @@ import Html.Attributes exposing (..)
 import Model exposing (..)
 import Tachyons exposing (classes, tachyons)
 import Tachyons.Classes exposing (..)
-import View.ViewHelpers exposing (liElement, topSectionButton, typeFormButton, buttonAsideText)
+import View.ViewHelpers exposing (liElement, topSectionButton, typeFormButton, buttonAsideText, typeFormFooterButton)
 import Markdown exposing (toHtml)
 
 
@@ -30,7 +30,13 @@ demoColors =
     , colorSelectBackground = "#DFEDEE"
     , colorSelectHover = "#CCD7D9"
     , colorSelectLetterBackground = "#C7D2D4"
+    , colorFooterBackground = "#E1EEF0"
+    , colorFooter = "#7C697F"
     }
+
+
+demoMsg =
+    NoOp
 
 
 demo : DemoData -> Html msg
@@ -38,7 +44,25 @@ demo data =
     div [ Html.Attributes.style [ ( "color", data.colors.colorMain ), ( "backgroundColor", data.colors.colorBackground ) ] ]
         [ viewTopSection data.topSection data.colors
         , div [] (mapQuestions data.questions data.colors)
+        , viewFooter data.colors.colorFooter data.colors.colorFooterBackground data.colors.colorButton data.colors.colorButtonBackground data.colors.colorButtonHover
         ]
+
+
+viewFooter colorFooter colorBackground colorButton colorButtonBackground colorButtonHover =
+    div [ class "fixed left-0 right-0 bottom-0 ph6 pv3 fl w-100 bt  ", style [ ( "backgroundColor", colorBackground ), ( "color", colorFooter ) ] ]
+        [ div [ class "fl w-50" ]
+            [ p [] [ text "0% completed" ]
+            , div [ class "bg-moon-gray br-pill h1 overflow-y-hidden" ] [ div [ class "bg-blue br-pill h1 shadow-1 w-third" ] [] ]
+            ]
+        , div [ class "fl w-50" ]
+            [ typeFormFooterButton colorButton colorButtonBackground colorButtonHover True
+            , typeFormFooterButton colorButton colorButtonBackground colorButtonHover False
+            ]
+        ]
+
+
+
+--div [ class "footer ph6 pv3 fl w-100 bt tc  ", style [ ( "backgroundColor", colorBackground ), ( "color", color ) ] ] [ text "footer" ]
 
 
 mapQuestions questions colors =
