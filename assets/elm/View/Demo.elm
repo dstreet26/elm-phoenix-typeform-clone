@@ -70,7 +70,7 @@ demoTopSection =
 demoFirstQuestion : TextQuestion
 demoFirstQuestion =
     { questionNumber = "1"
-    , questionText = "**Heasdfllo**. What's your name?*"
+    , questionText = "**Hello**. What's your name?*"
     , pressText = "press ENTER"
     , buttonText = "OK"
     }

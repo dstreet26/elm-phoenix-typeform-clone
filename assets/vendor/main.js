@@ -23829,7 +23829,7 @@ var _dstreet26$imagemanagerprototype$View_Demo$demoSecondQuestion = {
 		}
 	}
 };
-var _dstreet26$imagemanagerprototype$View_Demo$demoFirstQuestion = {questionNumber: '1', questionText: '**Heasdfllo**. What\'s your name?*', pressText: 'press ENTER', buttonText: 'OK'};
+var _dstreet26$imagemanagerprototype$View_Demo$demoFirstQuestion = {questionNumber: '1', questionText: '**Hello**. What\'s your name?*', pressText: 'press ENTER', buttonText: 'OK'};
 var _dstreet26$imagemanagerprototype$View_Demo$demoTopSection = {imageLink: 'images/typeform-example-face.png', headerText: 'Hey stranger, I\'m dying to get to know you better!', buttonText: 'Talk to me', pressText: 'press ENTER'};
 var _dstreet26$imagemanagerprototype$View_Demo$viewQuestion = F2(
 	function (question, colors) {
