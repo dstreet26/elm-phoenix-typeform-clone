@@ -110,6 +110,7 @@ subscriptions model =
     Sub.batch [ Keyboard.downs KeyMsg ]
 
 
+emptyModel : Model
 emptyModel =
     { value = 0
     , demoData = demoData
@@ -137,6 +138,7 @@ type Msg
     | PreviousQuestion
     | ActivateForm
     | KeyMsg Keyboard.KeyCode
+    | TextQuestionInputChanged String String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -144,6 +146,23 @@ update msg model =
     case msg of
         NoOp ->
             ( model, Cmd.none )
+
+        --Change (newContent, questionNumber) ->
+        TextQuestionInputChanged questionNumber newContent ->
+            let
+                demoData =
+                    model.demoData
+
+                questions =
+                    demoData.questions
+
+                newDemoData =
+                    { demoData | questions = setQuestionAnswer questions newContent questionNumber }
+
+                newModel =
+                    { model | demoData = newDemoData }
+            in
+                ( newModel, Cmd.none )
 
         Increment ->
             ( { model | value = model.value + 1 }, Cmd.none )
@@ -169,7 +188,7 @@ update msg model =
                     demoData.questions
 
                 newDemoData =
-                    { demoData | questions = (answerQuestion questions questionNumber "testanswer") }
+                    { demoData | questions = (answerQuestion questions questionNumber) }
 
                 newModel =
                     { model | demoData = newDemoData }
@@ -190,6 +209,18 @@ update msg model =
                 ( newModel, Cmd.none )
 
 
+setQuestionAnswer : List Question -> String -> String -> List Question
+setQuestionAnswer questions newContent questionNumber =
+    List.map
+        (\question ->
+            if question.questionNumber == questionNumber then
+                { question | answer = newContent }
+            else
+                question
+        )
+        questions
+
+
 setNumQuestionsAnswered : Model -> Model
 setNumQuestionsAnswered model =
     { model | numQuestionsAnswered = (getNumQuestionsAnswered model) }
@@ -208,8 +239,8 @@ getNumQuestionsAnswered model =
         List.length questionsAnswered
 
 
-answerQuestion : List Question -> String -> String -> List Question
-answerQuestion questions questionNumber answer =
+answerQuestion : List Question -> String -> List Question
+answerQuestion questions questionNumber =
     List.map
         (\question ->
             if question.questionNumber == questionNumber then
@@ -234,10 +265,12 @@ testSetAnswer question answer =
     { question | answer = answer }
 
 
+setActivated : Model -> Model
 setActivated model =
     { model | isFormActivated = True }
 
 
+setTotalQuestions : Model -> Model
 setTotalQuestions model =
     { model | totalQuestions = List.length model.demoData.questions }
 
@@ -258,10 +291,7 @@ view model =
         ]
 
 
-mybold sometext =
-    div [ classes [ Tachyons.Classes.b ] ] [ text sometext ]
-
-
+liElement : String -> String -> CSSValue -> CSSValue -> String -> Html msg
 liElement letter body colorBackground colorHover colorLetterBackground =
     li
         ((liElementTachyons) ++ (hover [ ( "backgroundColor", colorBackground, colorHover ) ]))
@@ -280,6 +310,7 @@ liElement letter body colorBackground colorHover colorLetterBackground =
         ]
 
 
+liElementTachyons : List (Attribute msg)
 liElementTachyons =
     [ classes
         [ Tachyons.Classes.ba
@@ -292,6 +323,7 @@ liElementTachyons =
     ]
 
 
+topSectionButton : DemoColors -> String -> Html Msg
 topSectionButton colors buttonText =
     button ([ (Html.Events.onClick ActivateForm) ] ++ (buttonTopTachyons) ++ (hoverStyles colors.colorButton colors.colorButtonBackground colors.colorButtonHover)) [ span [] [ Html.text buttonText ] ]
 
@@ -413,6 +445,7 @@ calculateProgressbar completed total =
     toString (100 * (toFloat completed / toFloat total)) ++ "%"
 
 
+mapQuestions : List Question -> DemoColors -> List (Html Msg)
 mapQuestions questions colors =
     List.map
         (\question ->
@@ -421,6 +454,7 @@ mapQuestions questions colors =
         questions
 
 
+viewQuestion : Question -> DemoColors -> Html Msg
 viewQuestion question colors =
     case question.questionType of
         Text options ->
@@ -505,7 +539,7 @@ viewTextQuestion question options colors =
         ]
         [ questionText colors question.questionNumber question.questionText
         , div [ classes [ Tachyons.Classes.ml3 ], Html.Attributes.class "input--hoshi" ]
-            [ input [ Html.Attributes.class "input__field--hoshi", Html.Attributes.id "input-4", type_ "text" ]
+            [ input [ Html.Events.onInput (TextQuestionInputChanged question.questionNumber), Html.Attributes.class "input__field--hoshi", Html.Attributes.id "input-4", type_ "text" ]
                 []
             , label [ Html.Attributes.class "input__label--hoshi hoshi-color-4", for "input-4" ]
                 []
@@ -524,6 +558,7 @@ viewTextQuestion question options colors =
         ]
 
 
+typeFormButton : DemoColors -> String -> String -> Html Msg
 typeFormButton colors buttonText questionNumber =
     button
         ([ onClick (AnswerQuestion questionNumber) ] ++ (buttonTypeformTachyons) ++ (hoverStyles colors.colorButton colors.colorButtonBackground colors.colorButtonHover))
@@ -559,6 +594,7 @@ viewSelectQuestion question options colors =
         ]
 
 
+listChoices : List Choice -> DemoColors -> List (Html msg)
 listChoices choices colors =
     List.map
         (\choice ->
