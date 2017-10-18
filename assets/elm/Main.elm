@@ -198,7 +198,7 @@ update msg model =
                     setNumQuestionsAnswered newModel
 
                 newModel3 =
-                    incrementCurrentlyActiveQuestion model
+                    incrementCurrentlyActiveQuestion newModel2
             in
                 ( newModel3, scrollToId newModel3.currentActiveQuestionNumber )
 
@@ -404,7 +404,7 @@ buttonAsideText asideText asideColor =
 demoData : DemoData
 demoData =
     { topSection = demoTopSection
-    , questions = [ demoFirstQuestion, demoSecondQuestion ]
+    , questions = [ demoFirstQuestion, demoAnotherFirstQuestion, demoSecondQuestion ]
     , name = "hey"
     , colors = demoColors
     }
@@ -502,15 +502,25 @@ demoFirstQuestion =
     }
 
 
+demoAnotherFirstQuestion : Question
+demoAnotherFirstQuestion =
+    { questionNumber = 2
+    , questionType = Text { buttonText = "OK", pressText = "press ENTER" }
+    , answer = ""
+    , isAnswered = False
+    , questionText = "Enter anything, this is a placeholder"
+    }
+
+
 demoSecondQuestion : Question
 demoSecondQuestion =
-    { questionNumber = 2
+    { questionNumber = 3
     , questionType =
         Select
             { choices =
-                [ { letter = "A", body = "hey" }
-                , { letter = "B", body = "still hardcoded" }
-                , { letter = "C", body = "but safer" }
+                [ { letter = "A", body = "Male" }
+                , { letter = "B", body = "Female" }
+                , { letter = "C", body = "Other" }
                 ]
             }
     , answer = ""
