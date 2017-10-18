@@ -35,6 +35,8 @@ type alias Model =
     , isFormActivated : Bool
     , numQuestionsAnswered : Int
     , totalQuestions : Int
+    , footerButtonUpEnabled : Bool
+    , footerButtonDownEnabled : Bool
     }
 
 
@@ -118,6 +120,8 @@ emptyModel =
     , isFormActivated = False
     , numQuestionsAnswered = 0
     , totalQuestions = 0
+    , footerButtonUpEnabled = False
+    , footerButtonDownEnabled = False
     }
 
 
@@ -171,36 +175,25 @@ update msg model =
             if keyCode == 13 then
                 if model.isFormActivated then
                     --TODO: Jump to the next question
-                    ( model, Cmd.none )
+                    let
+                        newModel =
+                            answerQuestion2 model model.currentActiveQuestionNumber
+                    in
+                        ( newModel, scrollToId newModel.currentActiveQuestionNumber )
                 else
                     ( { model | isFormActivated = True }, Cmd.none )
             else
                 ( model, Cmd.none )
 
-        NextQuestion ->
-            ( { model | currentActiveQuestionNumber = model.currentActiveQuestionNumber + 1 }, Cmd.none )
-
         AnswerQuestion questionNumber ->
             let
-                demoData =
-                    model.demoData
-
-                questions =
-                    demoData.questions
-
-                newDemoData =
-                    { demoData | questions = (answerQuestion questions questionNumber) }
-
-                newModel =
-                    { model | demoData = newDemoData }
-
-                newModel2 =
-                    setNumQuestionsAnswered newModel
-
                 newModel3 =
-                    incrementCurrentlyActiveQuestion newModel2
+                    answerQuestion2 model questionNumber
             in
                 ( newModel3, scrollToId newModel3.currentActiveQuestionNumber )
+
+        NextQuestion ->
+            ( { model | currentActiveQuestionNumber = model.currentActiveQuestionNumber + 1 }, Cmd.none )
 
         PreviousQuestion ->
             ( { model | currentActiveQuestionNumber = model.currentActiveQuestionNumber - 1 }, Cmd.none )
@@ -211,6 +204,30 @@ update msg model =
                     model |> setActivated |> setTotalQuestions |> setCurrentQuestionToFirst
             in
                 ( newModel, Cmd.none )
+
+
+answerQuestion2 : Model -> Int -> Model
+answerQuestion2 model questionNumber =
+    let
+        demoData =
+            model.demoData
+
+        questions =
+            demoData.questions
+
+        newDemoData =
+            { demoData | questions = (answerQuestion questions questionNumber) }
+
+        newModel =
+            { model | demoData = newDemoData }
+
+        newModel2 =
+            setNumQuestionsAnswered newModel
+
+        newModel3 =
+            incrementCurrentlyActiveQuestion newModel2
+    in
+        newModel3
 
 
 incrementCurrentlyActiveQuestion : Model -> Model
@@ -342,17 +359,29 @@ liElementTachyons =
     ]
 
 
+submitButton : DemoColors -> String -> Html Msg
+submitButton colors buttonText =
+    button ([ (Html.Events.onClick NoOp) ] ++ (buttonTopTachyons) ++ (hoverStyles colors.colorButton colors.colorButtonBackground colors.colorButtonHover)) [ span [] [ Html.text buttonText ] ]
+
+
 topSectionButton : DemoColors -> String -> Html Msg
 topSectionButton colors buttonText =
     button ([ (Html.Events.onClick ActivateForm) ] ++ (buttonTopTachyons) ++ (hoverStyles colors.colorButton colors.colorButtonBackground colors.colorButtonHover)) [ span [] [ Html.text buttonText ] ]
 
 
-typeFormFooterButton colorButton colorButtonBackground colorButtonHover isUp =
-    button
-        ((buttonTypeformTachyons) ++ (hoverStyles colorButton colorButtonBackground colorButtonHover))
-        [ span [ Html.Attributes.class (chevronUpOrDown isUp) ]
-            []
-        ]
+typeFormFooterButton colorButton colorButtonBackground colorButtonHover isUp isEnabled =
+    if isEnabled then
+        button
+            ((buttonTypeformTachyons) ++ (hoverStyles colorButton colorButtonBackground colorButtonHover) ++ [ Html.Attributes.disabled False ])
+            [ span [ Html.Attributes.class (chevronUpOrDown isUp) ]
+                []
+            ]
+    else
+        button
+            ((buttonTypeformTachyons) ++ ([ style [ ( "color", colorButton ), (( "backgroundColor", colorButtonHover )) ] ]) ++ [ Html.Attributes.disabled True ])
+            [ span [ Html.Attributes.class (chevronUpOrDown isUp) ]
+                []
+            ]
 
 
 chevronUpOrDown isUp =
@@ -433,20 +462,28 @@ demo model data =
         [ if model.isFormActivated then
             div []
                 [ div [ Html.Attributes.style [ ( "asdf", "asdf" ) ] ] (mapQuestions data.questions data.colors)
-                , viewFooter data.colors.colorFooter data.colors.colorFooterBackground data.colors.colorButton data.colors.colorButtonBackground data.colors.colorButtonHover model.numQuestionsAnswered model.totalQuestions
+                , viewSubmit model data
+                , viewFooter data.colors.colorFooter data.colors.colorFooterBackground data.colors.colorButton data.colors.colorButtonBackground data.colors.colorButtonHover model.numQuestionsAnswered model.totalQuestions model.footerButtonUpEnabled model.footerButtonDownEnabled
                 ]
           else
             viewTopSection data.topSection data.colors
         ]
 
 
-viewFooter colorFooter colorBackground colorButton colorButtonBackground colorButtonHover completed total =
+viewSubmit model data =
+    div [ class "f3 mw7 center tc vh-100" ]
+        [ submitButton model.demoData.colors "Submit"
+        , buttonAsideText "press ENTER" data.colors.colorGray
+        ]
+
+
+viewFooter colorFooter colorBackground colorButton colorButtonBackground colorButtonHover completed total footerButtonUpEnabled footerButtonDownEnabled =
     div [ class "fixed left-0 right-0 bottom-0 ph6 pv3 fl w-100 bt  ", style [ ( "backgroundColor", colorBackground ), ( "color", colorFooter ) ] ]
         [ div [ class "fl w-50" ]
             (viewFooterProgressBar completed total)
         , div [ class "fl w-50" ]
-            [ typeFormFooterButton colorButton colorButtonBackground colorButtonHover True
-            , typeFormFooterButton colorButton colorButtonBackground colorButtonHover False
+            [ typeFormFooterButton colorButton colorButtonBackground colorButtonHover True footerButtonUpEnabled
+            , typeFormFooterButton colorButton colorButtonBackground colorButtonHover False footerButtonDownEnabled
             ]
         ]
 
