@@ -9,14 +9,17 @@ import Tachyons.Classes exposing (..)
 import DynamicStyle exposing (..)
 import Markdown exposing (toHtml)
 import SmoothScroll exposing (scrollTo)
+import Keyboard
 
 
 main =
     Html.programWithFlags { init = init, view = view, update = update, subscriptions = subscriptions }
 
 
-
---Model
+type ValidationType
+    = NotNull
+    | Email
+    | AtLeastOne
 
 
 type alias Flags =
@@ -28,12 +31,25 @@ type alias Flags =
 type alias Model =
     { value : Int
     , demoData : DemoData
+    , currentActiveQuestionNumber : Int
+    , isFormActivated : Bool
+    , numQuestionsAnswered : Int
+    , totalQuestions : Int
     }
 
 
-type Question
-    = QuestionTypeText TextQuestion
-    | QuestionTypeSelect SelectQuestion
+type alias Question =
+    { questionType : QuestionType
+    , questionNumber : String
+    , questionText : String
+    , isAnswered : Bool
+    , answer : String
+    }
+
+
+type QuestionType
+    = Text TextOptions
+    | Select SelectOptions
 
 
 type alias DemoData =
@@ -68,10 +84,8 @@ type alias TopSection =
     }
 
 
-type alias TextQuestion =
-    { questionNumber : String
-    , questionText : String
-    , buttonText : String
+type alias TextOptions =
+    { buttonText : String
     , pressText : String
     }
 
@@ -82,10 +96,8 @@ type alias Choice =
     }
 
 
-type alias SelectQuestion =
-    { questionNumber : String
-    , questionText : String
-    , choices : List Choice
+type alias SelectOptions =
+    { choices : List Choice
     }
 
 
@@ -95,12 +107,16 @@ type alias SelectQuestion =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    Sub.batch [ Keyboard.downs KeyMsg ]
 
 
 emptyModel =
     { value = 0
     , demoData = demoData
+    , currentActiveQuestionNumber = 0
+    , isFormActivated = False
+    , numQuestionsAnswered = 0
+    , totalQuestions = 0
     }
 
 
@@ -116,7 +132,11 @@ init flags =
 type Msg
     = NoOp
     | Increment
-    | ScrollTo2
+    | NextQuestion
+    | AnswerQuestion String
+    | PreviousQuestion
+    | ActivateForm
+    | KeyMsg Keyboard.KeyCode
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -128,8 +148,98 @@ update msg model =
         Increment ->
             ( { model | value = model.value + 1 }, Cmd.none )
 
-        ScrollTo2 ->
-            ( model, scrollTo "question2" )
+        KeyMsg keyCode ->
+            if keyCode == 13 then
+                if model.isFormActivated then
+                    ( model, Cmd.none )
+                else
+                    ( { model | isFormActivated = True }, Cmd.none )
+            else
+                ( model, Cmd.none )
+
+        NextQuestion ->
+            ( { model | currentActiveQuestionNumber = model.currentActiveQuestionNumber + 1 }, Cmd.none )
+
+        AnswerQuestion questionNumber ->
+            let
+                demoData =
+                    model.demoData
+
+                questions =
+                    demoData.questions
+
+                newDemoData =
+                    { demoData | questions = (answerQuestion questions questionNumber "testanswer") }
+
+                newModel =
+                    { model | demoData = newDemoData }
+
+                newModel2 =
+                    setNumQuestionsAnswered newModel
+            in
+                ( newModel2, Cmd.none )
+
+        PreviousQuestion ->
+            ( { model | currentActiveQuestionNumber = model.currentActiveQuestionNumber - 1 }, Cmd.none )
+
+        ActivateForm ->
+            let
+                newModel =
+                    model |> setActivated |> setTotalQuestions
+            in
+                ( newModel, Cmd.none )
+
+
+setNumQuestionsAnswered : Model -> Model
+setNumQuestionsAnswered model =
+    { model | numQuestionsAnswered = (getNumQuestionsAnswered model) }
+
+
+getNumQuestionsAnswered : Model -> Int
+getNumQuestionsAnswered model =
+    let
+        questionsAnswered =
+            List.filter
+                (\x ->
+                    x.isAnswered == True
+                )
+                model.demoData.questions
+    in
+        List.length questionsAnswered
+
+
+answerQuestion : List Question -> String -> String -> List Question
+answerQuestion questions questionNumber answer =
+    List.map
+        (\question ->
+            if question.questionNumber == questionNumber then
+                let
+                    question2 =
+                        testSetIsAnswered question
+                in
+                    testSetIsAnswered question2
+            else
+                question
+        )
+        questions
+
+
+testSetIsAnswered : Question -> Question
+testSetIsAnswered question =
+    { question | isAnswered = True }
+
+
+testSetAnswer : Question -> String -> Question
+testSetAnswer question answer =
+    { question | answer = answer }
+
+
+setActivated model =
+    { model | isFormActivated = True }
+
+
+setTotalQuestions model =
+    { model | totalQuestions = List.length model.demoData.questions }
 
 
 styles : { img : List ( String, String ) }
@@ -144,8 +254,7 @@ styles =
 view : Model -> Html Msg
 view model =
     div [ classes [ fl, w_100 ], class "montserrat" ]
-        [ div [] [ button [ Html.Events.onClick ScrollTo2 ] [ text "scrollto2" ] ]
-        , demo model.demoData
+        [ demo model model.demoData
         ]
 
 
@@ -184,17 +293,7 @@ liElementTachyons =
 
 
 topSectionButton colors buttonText =
-    button ((buttonTopTachyons) ++ (hoverStyles colors.colorButton colors.colorButtonBackground colors.colorButtonHover)) [ span [] [ Html.text buttonText ] ]
-
-
-typeFormButton colors buttonText =
-    button
-        ((buttonTypeformTachyons) ++ (hoverStyles colors.colorButton colors.colorButtonBackground colors.colorButtonHover))
-        [ span []
-            [ Html.text buttonText ]
-        , span [ Html.Attributes.class "fa fa-check" ]
-            []
-        ]
+    button ([ (Html.Events.onClick ActivateForm) ] ++ (buttonTopTachyons) ++ (hoverStyles colors.colorButton colors.colorButtonBackground colors.colorButtonHover)) [ span [] [ Html.text buttonText ] ]
 
 
 typeFormFooterButton colorButton colorButtonBackground colorButtonHover isUp =
@@ -254,7 +353,7 @@ buttonAsideText asideText asideColor =
 demoData : DemoData
 demoData =
     { topSection = demoTopSection
-    , questions = [ QuestionTypeText demoFirstQuestion, QuestionTypeSelect demoSecondQuestion ]
+    , questions = [ demoFirstQuestion, demoSecondQuestion ]
     , name = "hey"
     , colors = demoColors
     }
@@ -277,21 +376,23 @@ demoColors =
     }
 
 
-demo : DemoData -> Html msg
-demo data =
+demo : Model -> DemoData -> Html Msg
+demo model data =
     div [ Html.Attributes.style [ ( "color", data.colors.colorMain ), ( "backgroundColor", data.colors.colorBackground ) ] ]
-        [ viewTopSection data.topSection data.colors
-        , div [] (mapQuestions data.questions data.colors)
-        , viewFooter data.colors.colorFooter data.colors.colorFooterBackground data.colors.colorButton data.colors.colorButtonBackground data.colors.colorButtonHover
+        [ if model.isFormActivated then
+            div []
+                [ div [ Html.Attributes.style [ ( "asdf", "asdf" ) ] ] (mapQuestions data.questions data.colors)
+                , viewFooter data.colors.colorFooter data.colors.colorFooterBackground data.colors.colorButton data.colors.colorButtonBackground data.colors.colorButtonHover model.numQuestionsAnswered model.totalQuestions
+                ]
+          else
+            viewTopSection data.topSection data.colors
         ]
 
 
-viewFooter colorFooter colorBackground colorButton colorButtonBackground colorButtonHover =
+viewFooter colorFooter colorBackground colorButton colorButtonBackground colorButtonHover completed total =
     div [ class "fixed left-0 right-0 bottom-0 ph6 pv3 fl w-100 bt  ", style [ ( "backgroundColor", colorBackground ), ( "color", colorFooter ) ] ]
         [ div [ class "fl w-50" ]
-            [ p [] [ text "0% completed" ]
-            , div [ class "bg-moon-gray br-pill h1 overflow-y-hidden" ] [ div [ class "bg-blue br-pill h1 shadow-1 w-third" ] [] ]
-            ]
+            (viewFooterProgressBar completed total)
         , div [ class "fl w-50" ]
             [ typeFormFooterButton colorButton colorButtonBackground colorButtonHover True
             , typeFormFooterButton colorButton colorButtonBackground colorButtonHover False
@@ -299,8 +400,17 @@ viewFooter colorFooter colorBackground colorButton colorButtonBackground colorBu
         ]
 
 
+viewFooterProgressBar : Int -> Int -> List (Html Msg)
+viewFooterProgressBar completed total =
+    [ p [] [ text (toString completed ++ " out of " ++ toString total ++ " questions completed") ]
+    , div [ class "bg-moon-gray br-pill h1 overflow-y-hidden" ] [ div [ class "bg-blue br-pill h1 shadow-1", style [ ( "width", calculateProgressbar completed total ) ] ] [] ]
+      --, div [ class "bg-moon-gray br-pill h1 overflow-y-hidden" ] [ div [ class "bg-blue br-pill h1 shadow-1", style [ ( "width", "10%" ) ] ] [] ]
+    ]
 
---div [ class "footer ph6 pv3 fl w-100 bt tc  ", style [ ( "backgroundColor", colorBackground ), ( "color", color ) ] ] [ text "footer" ]
+
+calculateProgressbar : Int -> Int -> String
+calculateProgressbar completed total =
+    toString (100 * (toFloat completed / toFloat total)) ++ "%"
 
 
 mapQuestions questions colors =
@@ -312,12 +422,12 @@ mapQuestions questions colors =
 
 
 viewQuestion question colors =
-    case question of
-        QuestionTypeText options ->
-            viewTextQuestion options colors
+    case question.questionType of
+        Text options ->
+            viewTextQuestion question options colors
 
-        QuestionTypeSelect options ->
-            viewSelectQuestion options colors
+        Select options ->
+            viewSelectQuestion question options colors
 
 
 demoTopSection : TopSection
@@ -329,28 +439,34 @@ demoTopSection =
     }
 
 
-demoFirstQuestion : TextQuestion
+demoFirstQuestion : Question
 demoFirstQuestion =
     { questionNumber = "1"
+    , questionType = Text { buttonText = "OK", pressText = "press ENTER" }
+    , answer = ""
+    , isAnswered = False
     , questionText = "**Hello**. What's your name?*"
-    , pressText = "press ENTER"
-    , buttonText = "OK"
     }
 
 
-demoSecondQuestion : SelectQuestion
+demoSecondQuestion : Question
 demoSecondQuestion =
     { questionNumber = "2"
-    , questionText = "Hi, asdf. What's your **gender**?"
-    , choices =
-        [ { letter = "A", body = "hey" }
-        , { letter = "B", body = "still hardcoded" }
-        , { letter = "C", body = "but safer" }
-        ]
+    , questionType =
+        Select
+            { choices =
+                [ { letter = "A", body = "hey" }
+                , { letter = "B", body = "still hardcoded" }
+                , { letter = "C", body = "but safer" }
+                ]
+            }
+    , answer = ""
+    , isAnswered = False
+    , questionText = "Hi, {{question1answer}}. What's your **gender**?"
     }
 
 
-viewTopSection : TopSection -> DemoColors -> Html msg
+viewTopSection : TopSection -> DemoColors -> Html Msg
 viewTopSection options colors =
     div
         [ classes
@@ -376,18 +492,18 @@ viewTopSection options colors =
         ]
 
 
-viewTextQuestion : TextQuestion -> DemoColors -> Html msg
-viewTextQuestion options colors =
+viewTextQuestion : Question -> TextOptions -> DemoColors -> Html Msg
+viewTextQuestion question options colors =
     div
         [ classes
-            [ Tachyons.Classes.mt6
+            [ Tachyons.Classes.pt6
             , Tachyons.Classes.mh7
             , Tachyons.Classes.f3
             , Tachyons.Classes.vh_100
             ]
-        , Html.Attributes.id ("question" ++ options.questionNumber)
+        , Html.Attributes.id ("question" ++ question.questionNumber)
         ]
-        [ questionText colors options.questionNumber options.questionText
+        [ questionText colors question.questionNumber question.questionText
         , div [ classes [ Tachyons.Classes.ml3 ], Html.Attributes.class "input--hoshi" ]
             [ input [ Html.Attributes.class "input__field--hoshi", Html.Attributes.id "input-4", type_ "text" ]
                 []
@@ -400,7 +516,7 @@ viewTextQuestion options colors =
                 , Tachyons.Classes.ml3
                 ]
             ]
-            [ typeFormButton colors options.buttonText
+            [ typeFormButton colors options.buttonText question.questionNumber
             , buttonAsideText options.pressText colors.colorGray
             ]
         , Html.br []
@@ -408,8 +524,18 @@ viewTextQuestion options colors =
         ]
 
 
-viewSelectQuestion : SelectQuestion -> DemoColors -> Html msg
-viewSelectQuestion options colors =
+typeFormButton colors buttonText questionNumber =
+    button
+        ([ onClick (AnswerQuestion questionNumber) ] ++ (buttonTypeformTachyons) ++ (hoverStyles colors.colorButton colors.colorButtonBackground colors.colorButtonHover))
+        [ span []
+            [ Html.text buttonText ]
+        , span [ Html.Attributes.class "fa fa-check" ]
+            []
+        ]
+
+
+viewSelectQuestion : Question -> SelectOptions -> DemoColors -> Html Msg
+viewSelectQuestion question options colors =
     div []
         [ div
             [ classes
@@ -418,9 +544,9 @@ viewSelectQuestion options colors =
                 , Tachyons.Classes.f3
                 , Tachyons.Classes.vh_100
                 ]
-            , Html.Attributes.id ("question" ++ options.questionNumber)
+            , Html.Attributes.id ("question" ++ question.questionNumber)
             ]
-            [ questionText colors options.questionNumber options.questionText
+            [ questionText colors question.questionNumber question.questionText
             , ul
                 [ classes
                     [ Tachyons.Classes.list
