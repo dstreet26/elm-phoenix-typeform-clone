@@ -40,7 +40,7 @@ type alias Model =
 
 type alias Question =
     { questionType : QuestionType
-    , questionNumber : String
+    , questionNumber : Int
     , questionText : String
     , isAnswered : Bool
     , answer : String
@@ -134,11 +134,11 @@ type Msg
     = NoOp
     | Increment
     | NextQuestion
-    | AnswerQuestion String
+    | AnswerQuestion Int
     | PreviousQuestion
     | ActivateForm
     | KeyMsg Keyboard.KeyCode
-    | TextQuestionInputChanged String String
+    | TextQuestionInputChanged Int String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -170,6 +170,7 @@ update msg model =
         KeyMsg keyCode ->
             if keyCode == 13 then
                 if model.isFormActivated then
+                    --TODO: Jump to the next question
                     ( model, Cmd.none )
                 else
                     ( { model | isFormActivated = True }, Cmd.none )
@@ -209,7 +210,7 @@ update msg model =
                 ( newModel, Cmd.none )
 
 
-setQuestionAnswer : List Question -> String -> String -> List Question
+setQuestionAnswer : List Question -> String -> Int -> List Question
 setQuestionAnswer questions newContent questionNumber =
     List.map
         (\question ->
@@ -239,7 +240,7 @@ getNumQuestionsAnswered model =
         List.length questionsAnswered
 
 
-answerQuestion : List Question -> String -> List Question
+answerQuestion : List Question -> Int -> List Question
 answerQuestion questions questionNumber =
     List.map
         (\question ->
@@ -475,7 +476,7 @@ demoTopSection =
 
 demoFirstQuestion : Question
 demoFirstQuestion =
-    { questionNumber = "1"
+    { questionNumber = 1
     , questionType = Text { buttonText = "OK", pressText = "press ENTER" }
     , answer = ""
     , isAnswered = False
@@ -485,7 +486,7 @@ demoFirstQuestion =
 
 demoSecondQuestion : Question
 demoSecondQuestion =
-    { questionNumber = "2"
+    { questionNumber = 2
     , questionType =
         Select
             { choices =
@@ -535,7 +536,7 @@ viewTextQuestion question options colors =
             , Tachyons.Classes.f3
             , Tachyons.Classes.vh_100
             ]
-        , Html.Attributes.id ("question" ++ question.questionNumber)
+        , Html.Attributes.id ("question" ++ toString question.questionNumber)
         ]
         [ questionText colors question.questionNumber question.questionText
         , div [ classes [ Tachyons.Classes.ml3 ], Html.Attributes.class "input--hoshi" ]
@@ -558,7 +559,7 @@ viewTextQuestion question options colors =
         ]
 
 
-typeFormButton : DemoColors -> String -> String -> Html Msg
+typeFormButton : DemoColors -> String -> Int -> Html Msg
 typeFormButton colors buttonText questionNumber =
     button
         ([ onClick (AnswerQuestion questionNumber) ] ++ (buttonTypeformTachyons) ++ (hoverStyles colors.colorButton colors.colorButtonBackground colors.colorButtonHover))
@@ -579,7 +580,7 @@ viewSelectQuestion question options colors =
                 , Tachyons.Classes.f3
                 , Tachyons.Classes.vh_100
                 ]
-            , Html.Attributes.id ("question" ++ question.questionNumber)
+            , Html.Attributes.id ("question" ++ toString question.questionNumber)
             ]
             [ questionText colors question.questionNumber question.questionText
             , ul
@@ -608,7 +609,7 @@ questionText colors questionNumber body =
         [ span [ classes [ Tachyons.Classes.pr2, Tachyons.Classes.fl ] ]
             [ span [ Html.Attributes.style [ ( "color", colors.colorGray ) ] ]
                 [ span [ classes [ Tachyons.Classes.pr1 ] ]
-                    [ Html.text questionNumber ]
+                    [ Html.text (toString questionNumber) ]
                 , span [ Html.Attributes.class "fa fa-arrow-right" ]
                     []
                 ]
