@@ -196,8 +196,11 @@ update msg model =
 
                 newModel2 =
                     setNumQuestionsAnswered newModel
+
+                newModel3 =
+                    incrementCurrentlyActiveQuestion model
             in
-                ( newModel2, Cmd.none )
+                ( newModel3, scrollToId newModel3.currentActiveQuestionNumber )
 
         PreviousQuestion ->
             ( { model | currentActiveQuestionNumber = model.currentActiveQuestionNumber - 1 }, Cmd.none )
@@ -205,9 +208,19 @@ update msg model =
         ActivateForm ->
             let
                 newModel =
-                    model |> setActivated |> setTotalQuestions
+                    model |> setActivated |> setTotalQuestions |> setCurrentQuestionToFirst
             in
                 ( newModel, Cmd.none )
+
+
+incrementCurrentlyActiveQuestion : Model -> Model
+incrementCurrentlyActiveQuestion model =
+    { model | currentActiveQuestionNumber = model.currentActiveQuestionNumber + 1 }
+
+
+scrollToId : Int -> Cmd Msg
+scrollToId id =
+    scrollTo ("question" ++ (toString id))
 
 
 setQuestionAnswer : List Question -> String -> Int -> List Question
@@ -264,6 +277,11 @@ testSetIsAnswered question =
 testSetAnswer : Question -> String -> Question
 testSetAnswer question answer =
     { question | answer = answer }
+
+
+setCurrentQuestionToFirst : Model -> Model
+setCurrentQuestionToFirst model =
+    { model | currentActiveQuestionNumber = 1 }
 
 
 setActivated : Model -> Model
