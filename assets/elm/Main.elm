@@ -179,9 +179,9 @@ update msg model =
                         newModel =
                             answerQuestion2 model model.currentActiveQuestionNumber
                     in
-                        ( newModel, scrollToId newModel.currentActiveQuestionNumber )
+                        ( newModel, scrollToId newModel newModel.currentActiveQuestionNumber )
                 else
-                    ( { model | isFormActivated = True }, Cmd.none )
+                    ( activateForm model, Cmd.none )
             else
                 ( model, Cmd.none )
 
@@ -190,20 +190,61 @@ update msg model =
                 newModel3 =
                     answerQuestion2 model questionNumber
             in
-                ( newModel3, scrollToId newModel3.currentActiveQuestionNumber )
+                ( newModel3, scrollToId newModel3 newModel3.currentActiveQuestionNumber )
 
         NextQuestion ->
-            ( { model | currentActiveQuestionNumber = model.currentActiveQuestionNumber + 1 }, Cmd.none )
+            let
+                nextActiveQuestionNumber =
+                    model.currentActiveQuestionNumber + 1
+
+                newModel =
+                    { model | currentActiveQuestionNumber = nextActiveQuestionNumber }
+
+                newmodel2 =
+                    handleFooterButtons newModel
+            in
+                ( newmodel2, scrollToId newmodel2 nextActiveQuestionNumber )
 
         PreviousQuestion ->
-            ( { model | currentActiveQuestionNumber = model.currentActiveQuestionNumber - 1 }, Cmd.none )
+            let
+                nextActiveQuestionNumber =
+                    model.currentActiveQuestionNumber - 1
+
+                newModel =
+                    { model | currentActiveQuestionNumber = nextActiveQuestionNumber }
+
+                newmodel2 =
+                    handleFooterButtons newModel
+            in
+                ( newmodel2, scrollToId newmodel2 nextActiveQuestionNumber )
 
         ActivateForm ->
             let
                 newModel =
-                    model |> setActivated |> setTotalQuestions |> setCurrentQuestionToFirst
+                    activateForm model
             in
                 ( newModel, Cmd.none )
+
+
+activateForm : Model -> Model
+activateForm model =
+    model |> setActivated |> setTotalQuestions |> setCurrentQuestionToFirst |> handleFooterButtons
+
+
+handleFooterButtons : Model -> Model
+handleFooterButtons model =
+    --current active id should be 0 initially
+    --if we're at the bottom, then set the down one to disabled
+    --if we're at the top, then set the top one to disabled
+    if model.currentActiveQuestionNumber > model.totalQuestions then
+        --we're at the bottom
+        { model | footerButtonUpEnabled = True, footerButtonDownEnabled = False }
+    else if model.currentActiveQuestionNumber == 1 then
+        --we're at the top
+        { model | footerButtonUpEnabled = False, footerButtonDownEnabled = True }
+    else
+        --we're in the middle
+        { model | footerButtonUpEnabled = True, footerButtonDownEnabled = True }
 
 
 answerQuestion2 : Model -> Int -> Model
@@ -226,8 +267,11 @@ answerQuestion2 model questionNumber =
 
         newModel3 =
             incrementCurrentlyActiveQuestion newModel2
+
+        newModel4 =
+            handleFooterButtons newModel3
     in
-        newModel3
+        newModel4
 
 
 incrementCurrentlyActiveQuestion : Model -> Model
@@ -235,9 +279,12 @@ incrementCurrentlyActiveQuestion model =
     { model | currentActiveQuestionNumber = model.currentActiveQuestionNumber + 1 }
 
 
-scrollToId : Int -> Cmd Msg
-scrollToId id =
-    scrollTo ("question" ++ (toString id))
+scrollToId : Model -> Int -> Cmd Msg
+scrollToId model id =
+    if id > model.totalQuestions then
+        scrollTo "submit"
+    else
+        scrollTo ("question" ++ (toString id))
 
 
 setQuestionAnswer : List Question -> String -> Int -> List Question
@@ -369,10 +416,10 @@ topSectionButton colors buttonText =
     button ([ (Html.Events.onClick ActivateForm) ] ++ (buttonTopTachyons) ++ (hoverStyles colors.colorButton colors.colorButtonBackground colors.colorButtonHover)) [ span [] [ Html.text buttonText ] ]
 
 
-typeFormFooterButton colorButton colorButtonBackground colorButtonHover isUp isEnabled =
+typeFormFooterButton colorButton colorButtonBackground colorButtonHover isUp isEnabled action =
     if isEnabled then
         button
-            ((buttonTypeformTachyons) ++ (hoverStyles colorButton colorButtonBackground colorButtonHover) ++ [ Html.Attributes.disabled False ])
+            (([ Html.Events.onClick action ]) ++ (buttonTypeformTachyons) ++ (hoverStyles colorButton colorButtonBackground colorButtonHover) ++ [ Html.Attributes.disabled False ])
             [ span [ Html.Attributes.class (chevronUpOrDown isUp) ]
                 []
             ]
@@ -471,7 +518,7 @@ demo model data =
 
 
 viewSubmit model data =
-    div [ class "f3 mw7 center tc vh-100" ]
+    div [ class "f3 mw7 center tc vh-50", id "submit" ]
         [ submitButton model.demoData.colors "Submit"
         , buttonAsideText "press ENTER" data.colors.colorGray
         ]
@@ -482,8 +529,8 @@ viewFooter colorFooter colorBackground colorButton colorButtonBackground colorBu
         [ div [ class "fl w-50" ]
             (viewFooterProgressBar completed total)
         , div [ class "fl w-50" ]
-            [ typeFormFooterButton colorButton colorButtonBackground colorButtonHover True footerButtonUpEnabled
-            , typeFormFooterButton colorButton colorButtonBackground colorButtonHover False footerButtonDownEnabled
+            [ typeFormFooterButton colorButton colorButtonBackground colorButtonHover True footerButtonUpEnabled PreviousQuestion
+            , typeFormFooterButton colorButton colorButtonBackground colorButtonHover False footerButtonDownEnabled NextQuestion
             ]
         ]
 
