@@ -482,7 +482,7 @@ demoData =
     { topSection = demoTopSection
     , questions = [ demoFirstQuestion, demoAnotherFirstQuestion, demoSecondQuestion ]
     , name = "hey"
-    , colors = demoColors
+    , colors = demoColors2
     }
 
 
@@ -495,6 +495,23 @@ demoColors =
     , colorButtonBackground = "#73BEC8"
     , colorButtonHover = "#98cfd6"
     , colorGray = "#696969"
+    , colorSelectBackground = "#DFEDEE"
+    , colorSelectHover = "#CCD7D9"
+    , colorSelectLetterBackground = "#C7D2D4"
+    , colorFooterBackground = "#E1EEF0"
+    , colorFooter = "#7C697F"
+    }
+
+
+demoColors2 : DemoColors
+demoColors2 =
+    { colorMain = "#114FA0"
+    , colorBackground = "#FED46A"
+    , colorText = "#275b62"
+    , colorButton = "#444747"
+    , colorButtonBackground = "#e8f5f7"
+    , colorButtonHover = "#b3b7b7"
+    , colorGray = "#C22F27"
     , colorSelectBackground = "#DFEDEE"
     , colorSelectHover = "#CCD7D9"
     , colorSelectLetterBackground = "#C7D2D4"
