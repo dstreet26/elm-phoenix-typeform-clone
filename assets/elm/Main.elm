@@ -10,6 +10,10 @@ import DynamicStyle exposing (..)
 import Markdown exposing (toHtml)
 import SmoothScroll exposing (scrollTo)
 import Keyboard
+import Countries exposing (countries)
+import Json.Decode as JD
+import List.Zipper as Zipper exposing (..)
+import FilterableDropdown as FD
 
 
 main =
@@ -37,6 +41,7 @@ type alias Model =
     , totalQuestions : Int
     , footerButtonUpEnabled : Bool
     , footerButtonDownEnabled : Bool
+    , fdModel : FD.Model
     }
 
 
@@ -52,6 +57,7 @@ type alias Question =
 type QuestionType
     = Text TextOptions
     | Select SelectOptions
+    | Dropdown DropdownOptions
 
 
 type alias DemoData =
@@ -103,6 +109,11 @@ type alias SelectOptions =
     }
 
 
+type alias DropdownOptions =
+    { choices : List String
+    }
+
+
 
 --Placeholder Subscriptions
 
@@ -122,6 +133,7 @@ emptyModel =
     , totalQuestions = 0
     , footerButtonUpEnabled = False
     , footerButtonDownEnabled = False
+    , fdModel = FD.model
     }
 
 
@@ -143,6 +155,7 @@ type Msg
     | ActivateForm
     | KeyMsg Keyboard.KeyCode
     | TextQuestionInputChanged Int String
+    | FDMsg FD.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -224,6 +237,13 @@ update msg model =
                     activateForm model
             in
                 ( newModel, Cmd.none )
+
+        FDMsg subMsg ->
+            let
+                updatedFDModel =
+                    FD.update subMsg model.fdModel
+            in
+                ( { model | fdModel = updatedFDModel }, Cmd.none )
 
 
 activateForm : Model -> Model
@@ -526,6 +546,7 @@ demo model data =
         [ if model.isFormActivated then
             div []
                 [ div [ Html.Attributes.style [ ( "asdf", "asdf" ) ] ] (mapQuestions data.questions data.colors)
+                , viewDropdownQuestion model
                 , viewSubmit model data
                 , viewFooter data.colors.colorFooter data.colors.colorFooterBackground data.colors.colorButton data.colors.colorButtonBackground data.colors.colorButtonHover model.numQuestionsAnswered model.totalQuestions model.footerButtonUpEnabled model.footerButtonDownEnabled
                 ]
@@ -583,6 +604,10 @@ viewQuestion question colors =
         Select options ->
             viewSelectQuestion question options colors
 
+        Dropdown options ->
+            --viewDropdownQuestion question options colors
+            div [] []
+
 
 demoTopSection : TopSection
 demoTopSection =
@@ -624,6 +649,18 @@ demoSecondQuestion =
                 , { letter = "C", body = "Other" }
                 ]
             }
+    , answer = ""
+    , isAnswered = False
+    , questionText = "Hi, {{question1answer}}. What's your **gender**?"
+    }
+
+
+demoDropDownQuestion : Question
+demoDropDownQuestion =
+    { questionNumber = 4
+    , questionType =
+        Dropdown
+            { choices = countries }
     , answer = ""
     , isAnswered = False
     , questionText = "Hi, {{question1answer}}. What's your **gender**?"
@@ -722,6 +759,34 @@ viewSelectQuestion question options colors =
                 (listChoices options.choices colors)
             ]
         ]
+
+
+
+--viewDropdownQuestion : Question -> DropdownOptions -> DemoColors -> Html Msg
+--viewDropdownQuestion question options colors =
+
+
+viewDropdownQuestion model =
+    div []
+        [ div
+            [ classes
+                [ Tachyons.Classes.mt6
+                , Tachyons.Classes.mh7
+                , Tachyons.Classes.f3
+                , Tachyons.Classes.vh_100
+                ]
+              --, Html.Attributes.id ("question" ++ toString question.questionNumber)
+            , Html.Attributes.id ("question4")
+            ]
+            [ questionText demoColors 4 "TEST"
+            , div [] [ Html.map FDMsg (FD.view model.fdModel) ]
+            ]
+        ]
+
+
+onKeyDown : (Int -> msg) -> Attribute msg
+onKeyDown tagger =
+    on "keydown" (JD.map tagger keyCode)
 
 
 listChoices : List Choice -> DemoColors -> List (Html msg)
