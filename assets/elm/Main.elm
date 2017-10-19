@@ -482,7 +482,7 @@ demoData =
     { topSection = demoTopSection
     , questions = [ demoFirstQuestion, demoAnotherFirstQuestion, demoSecondQuestion ]
     , name = "hey"
-    , colors = demoColors2
+    , colors = demoColors
     }
 
 
@@ -586,7 +586,7 @@ viewQuestion question colors =
 
 demoTopSection : TopSection
 demoTopSection =
-    { imageLink = "images/typeform-example-face.png"
+    { imageLink = "svg/square_face.svg"
     , headerText = "Hey stranger, I'm dying to get to know you better!"
     , buttonText = "Talk to me"
     , pressText = "press ENTER"
