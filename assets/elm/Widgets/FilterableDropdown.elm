@@ -177,10 +177,18 @@ type alias DemoColors =
 view : Model -> Html.Html Msg
 view model =
     div []
-        [ div [ class "fl w-100 bg-lightest-blue  pa6" ]
-            [ div [ class "measure-wide center" ]
+        [ div [ class "" ]
+            [ div [ class "" ]
                 [ div [ class " bb" ]
-                    [ input [ onKeyDown KeyDown, onClick InputClicked, onInput InputChanged, class "input reset bn  w-90 pv3 f3 bg-transparent on", placeholder "Type or select an option", type_ "text", value model.inputValue ]
+                    [ input
+                        [ onKeyDown KeyDown
+                        , onClick InputClicked
+                        , onInput InputChanged
+                        , class "input reset bn  w-90 pv3 f3 bg-transparent on"
+                        , placeholder "Type or select an option"
+                        , type_ "text"
+                        , value model.inputValue
+                        ]
                         []
                     , renderArrow model
                     ]
@@ -188,20 +196,6 @@ view model =
                     theList model
                   else
                     div [] []
-                ]
-            , div [ class "silver pt6 measure-wide center lh-copy " ]
-                [ h1 []
-                    [ text "hey" ]
-                , p []
-                    [ text "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laboriosam cum possimus et officiis minima aperiam debitis consequuntur, natus, sint accusamus expedita velit excepturi, at soluta hic placeat molestiae distinctio eos." ]
-                , h1 []
-                    [ text "hey" ]
-                , p []
-                    [ text "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laboriosam cum possimus et officiis minima aperiam debitis consequuntur, natus, sint accusamus expedita velit excepturi, at soluta hic placeat molestiae distinctio eos." ]
-                , h1 []
-                    [ text "hey" ]
-                , p []
-                    [ text "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laboriosam cum possimus et officiis minima aperiam debitis consequuntur, natus, sint accusamus expedita velit excepturi, at soluta hic placeat molestiae distinctio eos." ]
                 ]
             ]
         ]

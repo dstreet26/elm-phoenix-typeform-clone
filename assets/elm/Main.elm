@@ -611,8 +611,16 @@ viewDropdownQuestion question options colors =
                 ]
             , Html.Attributes.id ("question" ++ toString question.questionNumber)
             ]
-            [ questionText demoData.colorScheme 4 "TEST"
-            , div [] [ Html.map FDMsg (FD.view options.fdModel) ]
+            [ questionText demoData.colorScheme question.questionNumber question.questionText
+            , div
+                [ classes
+                    [ Tachyons.Classes.mw7
+                    , Tachyons.Classes.pl3
+                    ]
+                , Html.Attributes.style [ ( "color", colors.colorGray ) ]
+                ]
+                [ Html.map FDMsg (FD.view options.fdModel)
+                ]
             ]
         ]
 
