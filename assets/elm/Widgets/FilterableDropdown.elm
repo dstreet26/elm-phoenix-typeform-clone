@@ -1,9 +1,9 @@
-module FilterableDropdown exposing (..)
+module Widgets.FilterableDropdown exposing (..)
 
 import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Attributes exposing (..)
-import Countries exposing (countries)
+import TestData.Countries exposing (countries)
 import Keyboard
 import List.Zipper as Zipper exposing (..)
 import Json.Decode as JD

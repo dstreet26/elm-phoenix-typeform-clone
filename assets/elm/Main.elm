@@ -8,12 +8,14 @@ import Tachyons exposing (classes, tachyons)
 import Tachyons.Classes exposing (..)
 import DynamicStyle exposing (..)
 import Markdown exposing (toHtml)
-import SmoothScroll exposing (scrollTo)
+import Ports.SmoothScroll exposing (scrollTo)
 import Keyboard
-import Countries exposing (countries)
 import Json.Decode as JD
 import List.Zipper as Zipper exposing (..)
-import FilterableDropdown as FD
+import Widgets.FilterableDropdown as FD
+import Colors exposing (FormColors)
+import Widgets.Questionnaire exposing (..)
+import TestData.DemoData exposing (demoData)
 
 
 main =
@@ -34,88 +36,14 @@ type alias Flags =
 
 type alias Model =
     { value : Int
-    , demoData : DemoData
+    , demoData : Questionnaire
     , currentActiveQuestionNumber : Int
     , isFormActivated : Bool
     , numQuestionsAnswered : Int
     , totalQuestions : Int
     , footerButtonUpEnabled : Bool
     , footerButtonDownEnabled : Bool
-    , fdModel : FD.Model
     }
-
-
-type alias Question =
-    { questionType : QuestionType
-    , questionNumber : Int
-    , questionText : String
-    , isAnswered : Bool
-    , answer : String
-    }
-
-
-type QuestionType
-    = Text TextOptions
-    | Select SelectOptions
-    | Dropdown DropdownOptions
-
-
-type alias DemoData =
-    { topSection : TopSection
-    , questions : List Question
-    , name : String
-    , colors : DemoColors
-    }
-
-
-type alias DemoColors =
-    { colorMain : String
-    , colorBackground : String
-    , colorText : String
-    , colorButton : String
-    , colorButtonBackground : String
-    , colorButtonHover : String
-    , colorGray : String
-    , colorSelectBackground : String
-    , colorSelectHover : String
-    , colorSelectLetterBackground : String
-    , colorFooterBackground : String
-    , colorFooter : String
-    }
-
-
-type alias TopSection =
-    { imageLink : String
-    , headerText : String
-    , buttonText : String
-    , pressText : String
-    }
-
-
-type alias TextOptions =
-    { buttonText : String
-    , pressText : String
-    }
-
-
-type alias Choice =
-    { letter : String
-    , body : String
-    }
-
-
-type alias SelectOptions =
-    { choices : List Choice
-    }
-
-
-type alias DropdownOptions =
-    { choices : List String
-    }
-
-
-
---Placeholder Subscriptions
 
 
 subscriptions : Model -> Sub Msg
@@ -133,7 +61,6 @@ emptyModel =
     , totalQuestions = 0
     , footerButtonUpEnabled = False
     , footerButtonDownEnabled = False
-    , fdModel = FD.model
     }
 
 
@@ -239,11 +166,15 @@ update msg model =
                 ( newModel, Cmd.none )
 
         FDMsg subMsg ->
-            let
-                updatedFDModel =
-                    FD.update subMsg model.fdModel
-            in
-                ( { model | fdModel = updatedFDModel }, Cmd.none )
+            ( model, Cmd.none )
+
+
+
+--let
+--    updatedFDModel =
+--        FD.update subMsg model.fdModel
+--in
+--    ( { model | fdModel = updatedFDModel }, Cmd.none )
 
 
 activateForm : Model -> Model
@@ -426,12 +357,12 @@ liElementTachyons =
     ]
 
 
-submitButton : DemoColors -> String -> Html Msg
+submitButton : FormColors -> String -> Html Msg
 submitButton colors buttonText =
     button ([ (Html.Events.onClick NoOp) ] ++ (buttonTopTachyons) ++ (hoverStyles colors.colorButton colors.colorButtonBackground colors.colorButtonHover)) [ span [] [ Html.text buttonText ] ]
 
 
-topSectionButton : DemoColors -> String -> Html Msg
+topSectionButton : FormColors -> String -> Html Msg
 topSectionButton colors buttonText =
     button ([ (Html.Events.onClick ActivateForm) ] ++ (buttonTopTachyons) ++ (hoverStyles colors.colorButton colors.colorButtonBackground colors.colorButtonHover)) [ span [] [ Html.text buttonText ] ]
 
@@ -497,68 +428,34 @@ buttonAsideText asideText asideColor =
         [ Html.text asideText ]
 
 
-demoData : DemoData
-demoData =
-    { topSection = demoTopSection
-    , questions = [ demoFirstQuestion, demoAnotherFirstQuestion, demoSecondQuestion ]
-    , name = "hey"
-    , colors = demoColors
-    }
-
-
-demoColors : DemoColors
-demoColors =
-    { colorMain = "#5fb4bf"
-    , colorBackground = "#E5F3F5"
-    , colorText = "#275b62"
-    , colorButton = "#275b62"
-    , colorButtonBackground = "#73BEC8"
-    , colorButtonHover = "#98cfd6"
-    , colorGray = "#696969"
-    , colorSelectBackground = "#DFEDEE"
-    , colorSelectHover = "#CCD7D9"
-    , colorSelectLetterBackground = "#C7D2D4"
-    , colorFooterBackground = "#E1EEF0"
-    , colorFooter = "#7C697F"
-    }
-
-
-demoColors2 : DemoColors
-demoColors2 =
-    { colorMain = "#114FA0"
-    , colorBackground = "#FED46A"
-    , colorText = "#275b62"
-    , colorButton = "#444747"
-    , colorButtonBackground = "#e8f5f7"
-    , colorButtonHover = "#b3b7b7"
-    , colorGray = "#C22F27"
-    , colorSelectBackground = "#DFEDEE"
-    , colorSelectHover = "#CCD7D9"
-    , colorSelectLetterBackground = "#C7D2D4"
-    , colorFooterBackground = "#E1EEF0"
-    , colorFooter = "#7C697F"
-    }
-
-
-demo : Model -> DemoData -> Html Msg
+demo : Model -> Questionnaire -> Html Msg
 demo model data =
-    div [ Html.Attributes.style [ ( "color", data.colors.colorMain ), ( "backgroundColor", data.colors.colorBackground ) ] ]
+    div [ Html.Attributes.style [ ( "color", data.colorScheme.colorMain ), ( "backgroundColor", data.colorScheme.colorBackground ) ] ]
         [ if model.isFormActivated then
             div []
-                [ div [ Html.Attributes.style [ ( "asdf", "asdf" ) ] ] (mapQuestions data.questions data.colors)
-                , viewDropdownQuestion model
+                [ div [ Html.Attributes.style [ ( "asdf", "asdf" ) ] ] (mapQuestions data.questions data.colorScheme)
                 , viewSubmit model data
-                , viewFooter data.colors.colorFooter data.colors.colorFooterBackground data.colors.colorButton data.colors.colorButtonBackground data.colors.colorButtonHover model.numQuestionsAnswered model.totalQuestions model.footerButtonUpEnabled model.footerButtonDownEnabled
+                , viewFooter
+                    data.colorScheme.colorFooter
+                    data.colorScheme.colorFooterBackground
+                    data.colorScheme.colorButton
+                    data.colorScheme.colorButtonBackground
+                    data.colorScheme.colorButtonHover
+                    model.numQuestionsAnswered
+                    model.totalQuestions
+                    model.footerButtonUpEnabled
+                    model.footerButtonDownEnabled
                 ]
           else
-            viewTopSection data.topSection data.colors
+            viewTopSection data.topSection data.colorScheme
         ]
 
 
+viewSubmit : Model -> Questionnaire -> Html Msg
 viewSubmit model data =
     div [ class "f3 mw7 center tc vh-50", id "submit" ]
-        [ submitButton model.demoData.colors "Submit"
-        , buttonAsideText "press ENTER" data.colors.colorGray
+        [ submitButton model.demoData.colorScheme "Submit"
+        , buttonAsideText "press ENTER" data.colorScheme.colorGray
         ]
 
 
@@ -586,7 +483,7 @@ calculateProgressbar completed total =
     toString (100 * (toFloat completed / toFloat total)) ++ "%"
 
 
-mapQuestions : List Question -> DemoColors -> List (Html Msg)
+mapQuestions : List Question -> FormColors -> List (Html Msg)
 mapQuestions questions colors =
     List.map
         (\question ->
@@ -595,7 +492,7 @@ mapQuestions questions colors =
         questions
 
 
-viewQuestion : Question -> DemoColors -> Html Msg
+viewQuestion : Question -> FormColors -> Html Msg
 viewQuestion question colors =
     case question.questionType of
         Text options ->
@@ -605,69 +502,10 @@ viewQuestion question colors =
             viewSelectQuestion question options colors
 
         Dropdown options ->
-            --viewDropdownQuestion question options colors
-            div [] []
+            viewDropdownQuestion question options colors
 
 
-demoTopSection : TopSection
-demoTopSection =
-    { imageLink = "svg/square_face.svg"
-    , headerText = "Hey stranger, I'm dying to get to know you better!"
-    , buttonText = "Talk to me"
-    , pressText = "press ENTER"
-    }
-
-
-demoFirstQuestion : Question
-demoFirstQuestion =
-    { questionNumber = 1
-    , questionType = Text { buttonText = "OK", pressText = "press ENTER" }
-    , answer = ""
-    , isAnswered = False
-    , questionText = "**Hello**. What's your name?*"
-    }
-
-
-demoAnotherFirstQuestion : Question
-demoAnotherFirstQuestion =
-    { questionNumber = 2
-    , questionType = Text { buttonText = "OK", pressText = "press ENTER" }
-    , answer = ""
-    , isAnswered = False
-    , questionText = "Enter anything, this is a placeholder"
-    }
-
-
-demoSecondQuestion : Question
-demoSecondQuestion =
-    { questionNumber = 3
-    , questionType =
-        Select
-            { choices =
-                [ { letter = "A", body = "Male" }
-                , { letter = "B", body = "Female" }
-                , { letter = "C", body = "Other" }
-                ]
-            }
-    , answer = ""
-    , isAnswered = False
-    , questionText = "Hi, {{question1answer}}. What's your **gender**?"
-    }
-
-
-demoDropDownQuestion : Question
-demoDropDownQuestion =
-    { questionNumber = 4
-    , questionType =
-        Dropdown
-            { choices = countries }
-    , answer = ""
-    , isAnswered = False
-    , questionText = "Hi, {{question1answer}}. What's your **gender**?"
-    }
-
-
-viewTopSection : TopSection -> DemoColors -> Html Msg
+viewTopSection : TopSection -> FormColors -> Html Msg
 viewTopSection options colors =
     div
         [ classes
@@ -693,7 +531,7 @@ viewTopSection options colors =
         ]
 
 
-viewTextQuestion : Question -> TextOptions -> DemoColors -> Html Msg
+viewTextQuestion : Question -> TextOptions -> FormColors -> Html Msg
 viewTextQuestion question options colors =
     div
         [ classes
@@ -725,7 +563,7 @@ viewTextQuestion question options colors =
         ]
 
 
-typeFormButton : DemoColors -> String -> Int -> Html Msg
+typeFormButton : FormColors -> String -> Int -> Html Msg
 typeFormButton colors buttonText questionNumber =
     button
         ([ onClick (AnswerQuestion questionNumber) ] ++ (buttonTypeformTachyons) ++ (hoverStyles colors.colorButton colors.colorButtonBackground colors.colorButtonHover))
@@ -736,7 +574,7 @@ typeFormButton colors buttonText questionNumber =
         ]
 
 
-viewSelectQuestion : Question -> SelectOptions -> DemoColors -> Html Msg
+viewSelectQuestion : Question -> SelectOptions -> FormColors -> Html Msg
 viewSelectQuestion question options colors =
     div []
         [ div
@@ -761,12 +599,8 @@ viewSelectQuestion question options colors =
         ]
 
 
-
---viewDropdownQuestion : Question -> DropdownOptions -> DemoColors -> Html Msg
---viewDropdownQuestion question options colors =
-
-
-viewDropdownQuestion model =
+viewDropdownQuestion : Question -> DropdownOptions -> FormColors -> Html Msg
+viewDropdownQuestion question options colors =
     div []
         [ div
             [ classes
@@ -775,11 +609,10 @@ viewDropdownQuestion model =
                 , Tachyons.Classes.f3
                 , Tachyons.Classes.vh_100
                 ]
-              --, Html.Attributes.id ("question" ++ toString question.questionNumber)
-            , Html.Attributes.id ("question4")
+            , Html.Attributes.id ("question" ++ toString question.questionNumber)
             ]
-            [ questionText demoColors 4 "TEST"
-            , div [] [ Html.map FDMsg (FD.view model.fdModel) ]
+            [ questionText demoData.colorScheme 4 "TEST"
+            , div [] [ Html.map FDMsg (FD.view options.fdModel) ]
             ]
         ]
 
@@ -789,7 +622,7 @@ onKeyDown tagger =
     on "keydown" (JD.map tagger keyCode)
 
 
-listChoices : List Choice -> DemoColors -> List (Html msg)
+listChoices : List Choice -> FormColors -> List (Html msg)
 listChoices choices colors =
     List.map
         (\choice ->
