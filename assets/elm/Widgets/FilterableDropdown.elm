@@ -158,22 +158,6 @@ setListVisibility bool model =
     { model | showList = bool }
 
 
-type alias DemoColors =
-    { colorMain : String
-    , colorBackground : String
-    , colorText : String
-    , colorButton : String
-    , colorButtonBackground : String
-    , colorButtonHover : String
-    , colorGray : String
-    , colorSelectBackground : String
-    , colorSelectHover : String
-    , colorSelectLetterBackground : String
-    , colorFooterBackground : String
-    , colorFooter : String
-    }
-
-
 view : Model -> Html.Html Msg
 view model =
     div []
