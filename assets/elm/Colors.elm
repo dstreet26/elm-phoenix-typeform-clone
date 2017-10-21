@@ -1,5 +1,13 @@
 module Colors exposing (..)
 
+import Color exposing (..)
+import Color.Accessibility exposing (..)
+import Color.Blending exposing (..)
+import Color.Convert exposing (..)
+import Color.Gradient exposing (..)
+import Color.Interpolate exposing (..)
+import Color.Manipulate exposing (..)
+
 
 type alias FormColors =
     { colorMain : String
