@@ -13,7 +13,7 @@ import Keyboard
 import Json.Decode as JD
 import List.Zipper as Zipper exposing (..)
 import Widgets.FilterableDropdown as FD
-import Colors exposing (FormColors)
+import Colors exposing (ColorScheme)
 import Widgets.Questionnaire exposing (..)
 import TestData.DemoData exposing (demoData)
 
@@ -357,12 +357,12 @@ liElementTachyons =
     ]
 
 
-submitButton : FormColors -> String -> Html Msg
+submitButton : ColorScheme -> String -> Html Msg
 submitButton colors buttonText =
     button ([ (Html.Events.onClick NoOp) ] ++ (buttonTopTachyons) ++ (hoverStyles colors.colorButton colors.colorButtonBackground colors.colorButtonHover)) [ span [] [ Html.text buttonText ] ]
 
 
-topSectionButton : FormColors -> String -> Html Msg
+topSectionButton : ColorScheme -> String -> Html Msg
 topSectionButton colors buttonText =
     button ([ (Html.Events.onClick ActivateForm) ] ++ (buttonTopTachyons) ++ (hoverStyles colors.colorButton colors.colorButtonBackground colors.colorButtonHover)) [ span [] [ Html.text buttonText ] ]
 
@@ -483,7 +483,7 @@ calculateProgressbar completed total =
     toString (100 * (toFloat completed / toFloat total)) ++ "%"
 
 
-mapQuestions : List Question -> FormColors -> List (Html Msg)
+mapQuestions : List Question -> ColorScheme -> List (Html Msg)
 mapQuestions questions colors =
     List.map
         (\question ->
@@ -492,7 +492,7 @@ mapQuestions questions colors =
         questions
 
 
-viewQuestion : Question -> FormColors -> Html Msg
+viewQuestion : Question -> ColorScheme -> Html Msg
 viewQuestion question colors =
     case question.questionType of
         Text options ->
@@ -505,7 +505,7 @@ viewQuestion question colors =
             viewDropdownQuestion question options colors
 
 
-viewTopSection : TopSection -> FormColors -> Html Msg
+viewTopSection : TopSection -> ColorScheme -> Html Msg
 viewTopSection options colors =
     div
         [ classes
@@ -531,7 +531,7 @@ viewTopSection options colors =
         ]
 
 
-viewTextQuestion : Question -> TextOptions -> FormColors -> Html Msg
+viewTextQuestion : Question -> TextOptions -> ColorScheme -> Html Msg
 viewTextQuestion question options colors =
     div
         [ classes
@@ -563,7 +563,7 @@ viewTextQuestion question options colors =
         ]
 
 
-typeFormButton : FormColors -> String -> Int -> Html Msg
+typeFormButton : ColorScheme -> String -> Int -> Html Msg
 typeFormButton colors buttonText questionNumber =
     button
         ([ onClick (AnswerQuestion questionNumber) ] ++ (buttonTypeformTachyons) ++ (hoverStyles colors.colorButton colors.colorButtonBackground colors.colorButtonHover))
@@ -574,7 +574,7 @@ typeFormButton colors buttonText questionNumber =
         ]
 
 
-viewSelectQuestion : Question -> SelectOptions -> FormColors -> Html Msg
+viewSelectQuestion : Question -> SelectOptions -> ColorScheme -> Html Msg
 viewSelectQuestion question options colors =
     div []
         [ div
@@ -599,7 +599,7 @@ viewSelectQuestion question options colors =
         ]
 
 
-viewDropdownQuestion : Question -> DropdownOptions -> FormColors -> Html Msg
+viewDropdownQuestion : Question -> DropdownOptions -> ColorScheme -> Html Msg
 viewDropdownQuestion question options colors =
     div []
         [ div
@@ -622,7 +622,7 @@ onKeyDown tagger =
     on "keydown" (JD.map tagger keyCode)
 
 
-listChoices : List Choice -> FormColors -> List (Html msg)
+listChoices : List Choice -> ColorScheme -> List (Html msg)
 listChoices choices colors =
     List.map
         (\choice ->

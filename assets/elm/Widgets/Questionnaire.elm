@@ -1,6 +1,6 @@
 module Widgets.Questionnaire exposing (..)
 
-import Colors exposing (FormColors)
+import Colors exposing (ColorScheme)
 import Widgets.FilterableDropdown as FD
 
 
