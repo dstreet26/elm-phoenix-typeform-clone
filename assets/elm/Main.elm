@@ -1,6 +1,5 @@
 module Main exposing (..)
 
-import Date exposing (Date)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -15,6 +14,7 @@ import Widgets.Questionnaire exposing (..)
 import TestData.DemoData exposing (demoData)
 
 
+main : Program (Maybe Flags) Model Msg
 main =
     Html.programWithFlags { init = init, view = view, update = update, subscriptions = subscriptions }
 
@@ -394,6 +394,7 @@ topSectionButton colors buttonText =
         [ span [] [ text buttonText ] ]
 
 
+buttonAsideText : String -> String -> Html msg
 buttonAsideText asideText asideColor =
     span
         [ class "f6 pl3"
@@ -432,10 +433,7 @@ submitButton colors buttonText =
         [ span [] [ text buttonText ] ]
 
 
-
---typeFormFooterButton : ColorScheme -> Bool -> Bool -> msg -> Html Msg
-
-
+typeFormFooterButton : ColorScheme -> Bool -> Bool -> msg -> Html msg
 typeFormFooterButton colorScheme isUp isEnabled action =
     if isEnabled then
         button
@@ -458,6 +456,7 @@ typeFormFooterButton colorScheme isUp isEnabled action =
             ]
 
 
+chevronUpOrDown : Bool -> String
 chevronUpOrDown isUp =
     if isUp == True then
         "fa fa-chevron-up"
@@ -465,20 +464,24 @@ chevronUpOrDown isUp =
         "fa fa-chevron-down"
 
 
+buttonTopTachyons : List (Attribute msg)
 buttonTopTachyons =
     [ class ("ph4 " ++ buttonBase)
     ]
 
 
+buttonTypeformTachyons : List (Attribute msg)
 buttonTypeformTachyons =
     [ class ("ph3 " ++ buttonBase)
     ]
 
 
+buttonBase : String
 buttonBase =
     "button_reset b br2 pv2 ph3 bn pointer shadow_5"
 
 
+hoverStyles : ColorScheme -> List (Attribute msg)
 hoverStyles colorScheme =
     hover_
         [ ( "color", colorScheme.colorButton )
@@ -696,6 +699,7 @@ listChoices choices colors =
         choices
 
 
+questionText : ColorScheme -> Int -> String -> Html msg
 questionText colors questionNumber body =
     div [ class "" ]
         [ span [ class "pr2 fl" ]
