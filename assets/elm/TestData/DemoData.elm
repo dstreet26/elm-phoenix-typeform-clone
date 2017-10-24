@@ -2,8 +2,8 @@ module TestData.DemoData exposing (..)
 
 import Widgets.Questionnaire exposing (..)
 import TestData.Countries exposing (countries)
-import Widgets.FilterableDropdown as FD
 import TestData.ColorSchemes exposing (lightBlue, hornet)
+import List.Zipper as Zipper exposing (..)
 
 
 demoData : Questionnaire
@@ -72,9 +72,16 @@ demoDropDownQuestion =
     , questionType =
         Dropdown
             { choices = countries
-            , fdModel = FD.model
+            , filteredChoicesZipped = generateZipper countries
+            , inputValue = ""
+            , showList = False
             }
     , answer = ""
     , isAnswered = False
     , questionText = "Hi, {{question1answer}}. What's your **gender**?"
     }
+
+
+generateZipper : List String -> Zipper String
+generateZipper choices =
+    Zipper.fromList choices |> Zipper.withDefault "Not Found :("

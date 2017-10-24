@@ -1,7 +1,11 @@
 module Widgets.Questionnaire exposing (..)
 
 import Colors exposing (ColorScheme)
-import Widgets.FilterableDropdown as FD
+
+
+--import Widgets.FilterableDropdown as FD
+
+import List.Zipper as Zipper exposing (Zipper)
 
 
 type alias TopSection =
@@ -37,7 +41,9 @@ type alias SelectOptions =
 
 type alias DropdownOptions =
     { choices : List String
-    , fdModel : FD.Model
+    , filteredChoicesZipped : Zipper String
+    , inputValue : String
+    , showList : Bool
     }
 
 

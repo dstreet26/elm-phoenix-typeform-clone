@@ -3,8 +3,6 @@ module Widgets.FilterableDropdown exposing (..)
 import Html exposing (..)
 import Html.Events exposing (..)
 import Html.Attributes exposing (..)
-import TestData.Countries exposing (countries)
-import Keyboard
 import List.Zipper as Zipper exposing (..)
 import Json.Decode as JD
 
@@ -30,15 +28,6 @@ type alias Model =
     }
 
 
-model : Model
-model =
-    { choices = countries
-    , filteredChoicesZipped = generateZipper countries
-    , inputValue = ""
-    , showList = False
-    }
-
-
 generateZipper : List String -> Zipper String
 generateZipper choices =
     Zipper.fromList choices |> Zipper.withDefault "Not Found :("
@@ -47,10 +36,6 @@ generateZipper choices =
 onKeyDown : (Int -> msg) -> Attribute msg
 onKeyDown tagger =
     on "keydown" (JD.map tagger keyCode)
-
-
-
---update : Msg -> Model -> ( Model, Cmd Msg )
 
 
 update : Msg -> Model -> Model

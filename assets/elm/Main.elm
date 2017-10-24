@@ -11,7 +11,6 @@ import Markdown exposing (toHtml)
 import Ports.SmoothScroll exposing (scrollTo)
 import Keyboard
 import Json.Decode as JD
-import List.Zipper as Zipper exposing (..)
 import Widgets.FilterableDropdown as FD
 import Colors exposing (ColorScheme)
 import Widgets.Questionnaire exposing (..)
@@ -82,7 +81,7 @@ type Msg
     | ActivateForm
     | KeyMsg Keyboard.KeyCode
     | TextQuestionInputChanged Int String
-    | FDMsg FD.Msg
+    | FDMsg Question FD.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -165,16 +164,47 @@ update msg model =
             in
                 ( newModel, Cmd.none )
 
-        FDMsg subMsg ->
-            ( model, Cmd.none )
+        --FDMsg id subMsg ->
+        FDMsg question subMsg ->
+            let
+                ( newModel, newcmdmsg ) =
+                    case question.questionType of
+                        Dropdown options ->
+                            let
+                                --( newOptions, newcmdmsg ) =
+                                newOptions =
+                                    FD.update subMsg options
+
+                                newQuestions =
+                                    updateQuestionsWithId model question newOptions
+
+                                oldDemoData =
+                                    model.demoData
+
+                                newDemoData =
+                                    { oldDemoData | questions = newQuestions }
+
+                                newModel =
+                                    { model | demoData = newDemoData }
+                            in
+                                ( newModel, Cmd.none )
+
+                        _ ->
+                            ( model, Cmd.none )
+            in
+                ( newModel, newcmdmsg )
 
 
-
---let
---    updatedFDModel =
---        FD.update subMsg model.fdModel
---in
---    ( { model | fdModel = updatedFDModel }, Cmd.none )
+updateQuestionsWithId : Model -> Question -> DropdownOptions -> List Question
+updateQuestionsWithId model question newOptions =
+    List.map
+        (\x ->
+            if x.questionNumber == question.questionNumber then
+                { x | questionType = Dropdown newOptions }
+            else
+                x
+        )
+        model.demoData.questions
 
 
 activateForm : Model -> Model
@@ -502,7 +532,7 @@ viewQuestion question colors =
             viewSelectQuestion question options colors
 
         Dropdown options ->
-            viewDropdownQuestion question options colors
+            Html.map (FDMsg question) (viewDropdownQuestion question options colors)
 
 
 viewTopSection : TopSection -> ColorScheme -> Html Msg
@@ -599,7 +629,7 @@ viewSelectQuestion question options colors =
         ]
 
 
-viewDropdownQuestion : Question -> DropdownOptions -> ColorScheme -> Html Msg
+viewDropdownQuestion : Question -> DropdownOptions -> ColorScheme -> Html FD.Msg
 viewDropdownQuestion question options colors =
     div []
         [ div
@@ -619,15 +649,10 @@ viewDropdownQuestion question options colors =
                     ]
                 , Html.Attributes.style [ ( "color", colors.colorGray ) ]
                 ]
-                [ Html.map FDMsg (FD.view options.fdModel)
+                [ FD.view options
                 ]
             ]
         ]
-
-
-onKeyDown : (Int -> msg) -> Attribute msg
-onKeyDown tagger =
-    on "keydown" (JD.map tagger keyCode)
 
 
 listChoices : List Choice -> ColorScheme -> List (Html msg)
