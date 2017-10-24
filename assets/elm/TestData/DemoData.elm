@@ -16,7 +16,7 @@ demoData =
         , demoDropDownQuestion
         ]
     , name = "hey"
-    , colorScheme = hornet
+    , colorScheme = lightBlue
     }
 
 
