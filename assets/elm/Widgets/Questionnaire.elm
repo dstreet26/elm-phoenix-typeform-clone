@@ -53,6 +53,7 @@ type alias Question =
     , questionText : String
     , isAnswered : Bool
     , answer : String
+    , dependsOn : List Int
     }
 
 

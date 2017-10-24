@@ -472,7 +472,7 @@ demo model data =
     div [ Html.Attributes.style [ ( "color", data.colorScheme.colorMain ), ( "backgroundColor", data.colorScheme.colorBackground ) ] ]
         [ if model.isFormActivated then
             div []
-                [ div [ Html.Attributes.style [ ( "asdf", "asdf" ) ] ] (mapQuestions data.questions data.colorScheme)
+                [ div [ Html.Attributes.style [ ( "asdf", "asdf" ) ] ] (viewQuestions (filterQuestions data.questions) data.colorScheme)
                 , viewSubmit model data
                 , viewFooter
                     data.colorScheme.colorFooter
@@ -488,6 +488,62 @@ demo model data =
           else
             viewTopSection data.topSection data.colorScheme
         ]
+
+
+filterQuestions : List Question -> List Question
+filterQuestions questions =
+    List.filter
+        (\q ->
+            not (anyDependsOn questions q)
+        )
+        questions
+
+
+anyDependsOn : List Question -> Question -> Bool
+anyDependsOn questions q =
+    List.any
+        (\x ->
+            not x
+        )
+        (List.map
+            (\questionNumber ->
+                let
+                    questionById =
+                        getQuestionById questions questionNumber
+
+                    isAnswered =
+                        case questionById of
+                            Just x ->
+                                x.isAnswered
+
+                            Nothing ->
+                                True
+                in
+                    isAnswered
+            )
+            q.dependsOn
+        )
+
+
+getQuestionById : List Question -> Int -> Maybe Question
+getQuestionById questions id =
+    let
+        filtered =
+            List.filter
+                (\q ->
+                    if q.questionNumber == id then
+                        True
+                    else
+                        False
+                )
+                questions
+    in
+        List.head filtered
+
+
+type alias DependsOnConditions =
+    { conditions : List Bool
+    }
 
 
 viewSubmit : Model -> Questionnaire -> Html Msg
@@ -522,8 +578,8 @@ calculateProgressbar completed total =
     toString (100 * (toFloat completed / toFloat total)) ++ "%"
 
 
-mapQuestions : List Question -> ColorScheme -> List (Html Msg)
-mapQuestions questions colors =
+viewQuestions : List Question -> ColorScheme -> List (Html Msg)
+viewQuestions questions colors =
     List.map
         (\question ->
             viewQuestion question colors

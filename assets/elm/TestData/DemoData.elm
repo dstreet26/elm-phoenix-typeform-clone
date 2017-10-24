@@ -36,6 +36,7 @@ demoFirstQuestion =
     , answer = ""
     , isAnswered = False
     , questionText = "**Hello**. What's your name?*"
+    , dependsOn = []
     }
 
 
@@ -46,6 +47,7 @@ demoAnotherFirstQuestion =
     , answer = ""
     , isAnswered = False
     , questionText = "Enter anything, this is a placeholder"
+    , dependsOn = []
     }
 
 
@@ -63,6 +65,7 @@ demoSecondQuestion =
     , answer = ""
     , isAnswered = False
     , questionText = "Hi, {{question1answer}}. What's your **gender**?"
+    , dependsOn = [ 1 ]
     }
 
 
@@ -79,6 +82,7 @@ demoDropDownQuestion =
     , answer = ""
     , isAnswered = False
     , questionText = "Hi, {{question1answer}}. What's your **gender**?"
+    , dependsOn = [ 1, 2 ]
     }
 
 
