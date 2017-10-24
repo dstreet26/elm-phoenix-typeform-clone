@@ -47,7 +47,8 @@ type alias Model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.batch [ Keyboard.downs KeyMsg ]
+    --Sub.batch [ Keyboard.downs KeyMsg ]
+    Sub.none
 
 
 emptyModel : Model
@@ -76,12 +77,18 @@ type Msg
     = NoOp
     | Increment
     | NextQuestion
+    | TextQuestionClicked Question
     | AnswerQuestion Int
     | PreviousQuestion
     | ActivateForm
-    | KeyMsg Keyboard.KeyCode
+    | KeyDown Keyboard.KeyCode
     | TextQuestionInputChanged Int String
     | FDMsg Question FD.Msg
+
+
+onKeyDown : (Int -> msg) -> Attribute msg
+onKeyDown tagger =
+    on "keydown" (JD.map tagger keyCode)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -107,16 +114,18 @@ update msg model =
             in
                 ( newModel, Cmd.none )
 
+        TextQuestionClicked question ->
+            ( { model | currentActiveQuestionNumber = question.questionNumber }, Cmd.none )
+
         Increment ->
             ( { model | value = model.value + 1 }, Cmd.none )
 
-        KeyMsg keyCode ->
+        KeyDown keyCode ->
             if keyCode == 13 then
                 if model.isFormActivated then
-                    --TODO: Jump to the next question
                     let
                         newModel =
-                            answerQuestion2 model model.currentActiveQuestionNumber
+                            answerQuestion model model.currentActiveQuestionNumber
                     in
                         ( newModel, scrollToId newModel newModel.currentActiveQuestionNumber )
                 else
@@ -127,7 +136,7 @@ update msg model =
         AnswerQuestion questionNumber ->
             let
                 newModel3 =
-                    answerQuestion2 model questionNumber
+                    answerQuestion model questionNumber
             in
                 ( newModel3, scrollToId newModel3 newModel3.currentActiveQuestionNumber )
 
@@ -228,8 +237,24 @@ handleFooterButtons model =
         { model | footerButtonUpEnabled = True, footerButtonDownEnabled = True }
 
 
-answerQuestion2 : Model -> Int -> Model
-answerQuestion2 model questionNumber =
+setQuestionAnswered : List Question -> Int -> List Question
+setQuestionAnswered questions questionNumber =
+    List.map
+        (\question ->
+            if question.questionNumber == questionNumber then
+                let
+                    question2 =
+                        testSetIsAnswered question
+                in
+                    testSetIsAnswered question2
+            else
+                question
+        )
+        questions
+
+
+answerQuestion : Model -> Int -> Model
+answerQuestion model questionNumber =
     let
         demoData =
             model.demoData
@@ -238,7 +263,7 @@ answerQuestion2 model questionNumber =
             demoData.questions
 
         newDemoData =
-            { demoData | questions = (answerQuestion questions questionNumber) }
+            { demoData | questions = (setQuestionAnswered questions questionNumber) }
 
         newModel =
             { model | demoData = newDemoData }
@@ -296,22 +321,6 @@ getNumQuestionsAnswered model =
                 model.demoData.questions
     in
         List.length questionsAnswered
-
-
-answerQuestion : List Question -> Int -> List Question
-answerQuestion questions questionNumber =
-    List.map
-        (\question ->
-            if question.questionNumber == questionNumber then
-                let
-                    question2 =
-                        testSetIsAnswered question
-                in
-                    testSetIsAnswered question2
-            else
-                question
-        )
-        questions
 
 
 testSetIsAnswered : Question -> Question
@@ -574,7 +583,7 @@ viewTextQuestion question options colors =
         ]
         [ questionText colors question.questionNumber question.questionText
         , div [ classes [ Tachyons.Classes.ml3 ], Html.Attributes.class "input--hoshi" ]
-            [ input [ Html.Events.onInput (TextQuestionInputChanged question.questionNumber), Html.Attributes.class "input__field--hoshi", Html.Attributes.id "input-4", type_ "text" ]
+            [ input [ onKeyDown KeyDown, Html.Events.onClick (TextQuestionClicked question), Html.Events.onInput (TextQuestionInputChanged question.questionNumber), Html.Attributes.class "input__field--hoshi", Html.Attributes.id "input-4", type_ "text" ]
                 []
             , label [ Html.Attributes.class "input__label--hoshi hoshi-color-4", for "input-4" ]
                 []
