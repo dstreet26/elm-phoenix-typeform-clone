@@ -282,7 +282,7 @@ scrollToId model id =
     if id > model.totalQuestions then
         scrollTo "submit"
     else
-        scrollTo ("question" ++ (toString id))
+        scrollTo ("question" ++ toString id)
 
 
 setQuestionAnswer : List Question -> String -> Int -> List Question
@@ -299,7 +299,7 @@ setQuestionAnswer questions newContent questionNumber =
 
 setNumQuestionsAnswered : Model -> Model
 setNumQuestionsAnswered model =
-    { model | numQuestionsAnswered = (getNumQuestionsAnswered model) }
+    { model | numQuestionsAnswered = getNumQuestionsAnswered model }
 
 
 getNumQuestionsAnswered : Model -> Int
@@ -387,9 +387,9 @@ viewTopSection options colors =
 topSectionButton : ColorScheme -> String -> Html Msg
 topSectionButton colors buttonText =
     button
-        ([ (onClick ActivateForm) ]
-            ++ (buttonTopTachyons)
-            ++ (hoverStyles colors)
+        ([ onClick ActivateForm ]
+            ++ buttonTopTachyons
+            ++ hoverStyles colors
         )
         [ span [] [ text buttonText ] ]
 
@@ -405,7 +405,7 @@ buttonAsideText asideText asideColor =
 liElement : String -> String -> CSSValue -> CSSValue -> String -> Html msg
 liElement letter body colorBackground colorHover colorLetterBackground =
     li
-        ((liElementTachyons) ++ (hover [ ( "backgroundColor", colorBackground, colorHover ) ]))
+        (liElementTachyons ++ hover [ ( "backgroundColor", colorBackground, colorHover ) ])
         [ span
             [ class "ba ph2 pv1 mr2"
             , style [ ( "backgroundColor", colorLetterBackground ) ]
@@ -425,9 +425,9 @@ liElementTachyons =
 submitButton : ColorScheme -> String -> Html Msg
 submitButton colors buttonText =
     button
-        ([ (onClick NoOp) ]
-            ++ (buttonTopTachyons)
-            ++ (hoverStyles colors)
+        ([ onClick NoOp ]
+            ++ buttonTopTachyons
+            ++ hoverStyles colors
         )
         [ span [] [ text buttonText ] ]
 
@@ -439,9 +439,9 @@ submitButton colors buttonText =
 typeFormFooterButton colorScheme isUp isEnabled action =
     if isEnabled then
         button
-            (([ onClick action ])
-                ++ (buttonTypeformTachyons)
-                ++ (hoverStyles colorScheme)
+            ([ onClick action ]
+                ++ buttonTypeformTachyons
+                ++ hoverStyles colorScheme
                 ++ [ disabled False ]
             )
             [ span [ class (chevronUpOrDown isUp) ]
@@ -449,8 +449,8 @@ typeFormFooterButton colorScheme isUp isEnabled action =
             ]
     else
         button
-            ((buttonTypeformTachyons)
-                ++ ([ style [ ( "color", colorScheme.colorButton ), ( "backgroundColor", colorScheme.colorButtonHover ) ] ])
+            (buttonTypeformTachyons
+                ++ [ style [ ( "color", colorScheme.colorButton ), ( "backgroundColor", colorScheme.colorButtonHover ) ] ]
                 ++ [ disabled True ]
             )
             [ span [ class (chevronUpOrDown isUp) ]
@@ -642,8 +642,8 @@ typeFormButton : ColorScheme -> String -> Int -> Html Msg
 typeFormButton colors buttonText questionNumber =
     button
         ([ onClick (AnswerQuestion questionNumber) ]
-            ++ (buttonTypeformTachyons)
-            ++ (hoverStyles colors)
+            ++ buttonTypeformTachyons
+            ++ hoverStyles colors
         )
         [ span []
             [ text buttonText ]

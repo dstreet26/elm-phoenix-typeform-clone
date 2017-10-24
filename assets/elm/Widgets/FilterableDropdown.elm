@@ -87,7 +87,7 @@ flipVisibility model =
 handleEnter : Model -> Model
 handleEnter model =
     if model.showList then
-        { model | inputValue = (Zipper.current model.filteredChoicesZipped) }
+        { model | inputValue = Zipper.current model.filteredChoicesZipped }
     else
         model
 
@@ -182,9 +182,9 @@ renderArrow { showList } =
 theList { filteredChoicesZipped } =
     div [ class "absolute nano  w-30" ]
         [ ul [ class "list pl0 f3 z-2 overflow-auto   vh-50 " ]
-            ((List.map (\choice -> viewLiNormal choice) (Zipper.before filteredChoicesZipped))
+            (List.map (\choice -> viewLiNormal choice) (Zipper.before filteredChoicesZipped)
                 ++ [ viewLiHighlighted (Zipper.current filteredChoicesZipped) ]
-                ++ (List.map (\choice -> viewLiNormal choice) (Zipper.after filteredChoicesZipped))
+                ++ List.map (\choice -> viewLiNormal choice) (Zipper.after filteredChoicesZipped)
             )
         ]
 
