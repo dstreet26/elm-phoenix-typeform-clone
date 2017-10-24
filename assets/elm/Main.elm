@@ -4,8 +4,6 @@ import Date exposing (Date)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Tachyons exposing (classes, tachyons)
-import Tachyons.Classes exposing (..)
 import DynamicStyle exposing (..)
 import Markdown exposing (toHtml)
 import Ports.SmoothScroll exposing (scrollTo)
@@ -21,12 +19,6 @@ main =
     Html.programWithFlags { init = init, view = view, update = update, subscriptions = subscriptions }
 
 
-type ValidationType
-    = NotNull
-    | Email
-    | AtLeastOne
-
-
 type alias Flags =
     { user : String
     , token : String
@@ -35,7 +27,7 @@ type alias Flags =
 
 type alias Model =
     { value : Int
-    , demoData : Questionnaire
+    , questionnaire : Questionnaire
     , currentActiveQuestionNumber : Int
     , isFormActivated : Bool
     , numQuestionsAnswered : Int
@@ -54,7 +46,7 @@ subscriptions model =
 emptyModel : Model
 emptyModel =
     { value = 0
-    , demoData = demoData
+    , questionnaire = demoData
     , currentActiveQuestionNumber = 0
     , isFormActivated = False
     , numQuestionsAnswered = 0
@@ -101,7 +93,7 @@ update msg model =
         TextQuestionInputChanged questionNumber newContent ->
             let
                 demoData =
-                    model.demoData
+                    model.questionnaire
 
                 questions =
                     demoData.questions
@@ -110,7 +102,7 @@ update msg model =
                     { demoData | questions = setQuestionAnswer questions newContent questionNumber }
 
                 newModel =
-                    { model | demoData = newDemoData }
+                    { model | questionnaire = newDemoData }
             in
                 ( newModel, Cmd.none )
 
@@ -188,13 +180,13 @@ update msg model =
                                     updateQuestionsWithId model question newOptions
 
                                 oldDemoData =
-                                    model.demoData
+                                    model.questionnaire
 
                                 newDemoData =
                                     { oldDemoData | questions = newQuestions }
 
                                 newModel =
-                                    { model | demoData = newDemoData }
+                                    { model | questionnaire = newDemoData }
                             in
                                 ( newModel, Cmd.none )
 
@@ -213,7 +205,7 @@ updateQuestionsWithId model question newOptions =
             else
                 x
         )
-        model.demoData.questions
+        model.questionnaire.questions
 
 
 activateForm : Model -> Model
@@ -257,16 +249,16 @@ answerQuestion : Model -> Int -> Model
 answerQuestion model questionNumber =
     let
         demoData =
-            model.demoData
+            model.questionnaire
 
         questions =
             demoData.questions
 
         newDemoData =
-            { demoData | questions = (setQuestionAnswered questions questionNumber) }
+            { demoData | questions = setQuestionAnswered questions questionNumber }
 
         newModel =
-            { model | demoData = newDemoData }
+            { model | questionnaire = newDemoData }
 
         newModel2 =
             setNumQuestionsAnswered newModel
@@ -318,7 +310,7 @@ getNumQuestionsAnswered model =
                 (\x ->
                     x.isAnswered == True
                 )
-                model.demoData.questions
+                model.questionnaire.questions
     in
         List.length questionsAnswered
 
@@ -345,23 +337,69 @@ setActivated model =
 
 setTotalQuestions : Model -> Model
 setTotalQuestions model =
-    { model | totalQuestions = List.length model.demoData.questions }
-
-
-styles : { img : List ( String, String ) }
-styles =
-    { img =
-        [ ( "width", "33%" )
-        , ( "border", "4px solid #337AB7" )
-        ]
-    }
+    { model | totalQuestions = List.length model.questionnaire.questions }
 
 
 view : Model -> Html Msg
 view model =
-    div [ classes [ fl, w_100 ], class "montserrat" ]
-        [ demo model model.demoData
+    div [ class "fl w-100 montserrat" ]
+        [ demo model
         ]
+
+
+demo : Model -> Html Msg
+demo model =
+    div
+        [ style
+            [ ( "color", model.questionnaire.colorScheme.colorMain )
+            , ( "backgroundColor", model.questionnaire.colorScheme.colorBackground )
+            ]
+        ]
+        [ if model.isFormActivated then
+            div []
+                [ div [] (viewQuestions (filterQuestions model.questionnaire.questions) model.questionnaire.colorScheme)
+                , viewSubmit model
+                , viewFooter model
+                ]
+          else
+            viewTopSection model.questionnaire.topSection model.questionnaire.colorScheme
+        ]
+
+
+viewTopSection : TopSection -> ColorScheme -> Html Msg
+viewTopSection options colors =
+    div
+        [ class "pt6 f3 mw7 center tc vh-100"
+        , id "topsection"
+        ]
+        [ img
+            [ src options.imageLink
+            ]
+            []
+        , p [] [ text options.headerText ]
+        , div []
+            [ topSectionButton colors options.buttonText
+            , buttonAsideText options.pressText colors.colorGray
+            ]
+        ]
+
+
+topSectionButton : ColorScheme -> String -> Html Msg
+topSectionButton colors buttonText =
+    button
+        ([ (onClick ActivateForm) ]
+            ++ (buttonTopTachyons)
+            ++ (hoverStyles colors)
+        )
+        [ span [] [ text buttonText ] ]
+
+
+buttonAsideText asideText asideColor =
+    span
+        [ class "f6 pl3"
+        , style [ ( "color", asideColor ) ]
+        ]
+        [ text asideText ]
 
 
 liElement : String -> String -> CSSValue -> CSSValue -> String -> Html msg
@@ -369,12 +407,7 @@ liElement letter body colorBackground colorHover colorLetterBackground =
     li
         ((liElementTachyons) ++ (hover [ ( "backgroundColor", colorBackground, colorHover ) ]))
         [ span
-            [ classes
-                [ Tachyons.Classes.ba
-                , Tachyons.Classes.ph2
-                , Tachyons.Classes.pv1
-                , Tachyons.Classes.mr2
-                ]
+            [ class "ba ph2 pv1 mr2"
             , style [ ( "backgroundColor", colorLetterBackground ) ]
             ]
             [ text letter ]
@@ -385,38 +418,42 @@ liElement letter body colorBackground colorHover colorLetterBackground =
 
 liElementTachyons : List (Attribute msg)
 liElementTachyons =
-    [ classes
-        [ Tachyons.Classes.ba
-        , Tachyons.Classes.pa3
-        , Tachyons.Classes.br2
-        , Tachyons.Classes.b__black_40
-        , Tachyons.Classes.mv3
-        , Tachyons.Classes.pointer
-        ]
+    [ class "ba pa3 br2 b--black-40 mv3 pointer"
     ]
 
 
 submitButton : ColorScheme -> String -> Html Msg
 submitButton colors buttonText =
-    button ([ (Html.Events.onClick NoOp) ] ++ (buttonTopTachyons) ++ (hoverStyles colors.colorButton colors.colorButtonBackground colors.colorButtonHover)) [ span [] [ Html.text buttonText ] ]
+    button
+        ([ (onClick NoOp) ]
+            ++ (buttonTopTachyons)
+            ++ (hoverStyles colors)
+        )
+        [ span [] [ text buttonText ] ]
 
 
-topSectionButton : ColorScheme -> String -> Html Msg
-topSectionButton colors buttonText =
-    button ([ (Html.Events.onClick ActivateForm) ] ++ (buttonTopTachyons) ++ (hoverStyles colors.colorButton colors.colorButtonBackground colors.colorButtonHover)) [ span [] [ Html.text buttonText ] ]
+
+--typeFormFooterButton : ColorScheme -> Bool -> Bool -> msg -> Html Msg
 
 
-typeFormFooterButton colorButton colorButtonBackground colorButtonHover isUp isEnabled action =
+typeFormFooterButton colorScheme isUp isEnabled action =
     if isEnabled then
         button
-            (([ Html.Events.onClick action ]) ++ (buttonTypeformTachyons) ++ (hoverStyles colorButton colorButtonBackground colorButtonHover) ++ [ Html.Attributes.disabled False ])
-            [ span [ Html.Attributes.class (chevronUpOrDown isUp) ]
+            (([ onClick action ])
+                ++ (buttonTypeformTachyons)
+                ++ (hoverStyles colorScheme)
+                ++ [ disabled False ]
+            )
+            [ span [ class (chevronUpOrDown isUp) ]
                 []
             ]
     else
         button
-            ((buttonTypeformTachyons) ++ ([ style [ ( "color", colorButton ), (( "backgroundColor", colorButtonHover )) ] ]) ++ [ Html.Attributes.disabled True ])
-            [ span [ Html.Attributes.class (chevronUpOrDown isUp) ]
+            ((buttonTypeformTachyons)
+                ++ ([ style [ ( "color", colorScheme.colorButton ), ( "backgroundColor", colorScheme.colorButtonHover ) ] ])
+                ++ [ disabled True ]
+            )
+            [ span [ class (chevronUpOrDown isUp) ]
                 []
             ]
 
@@ -429,65 +466,24 @@ chevronUpOrDown isUp =
 
 
 buttonTopTachyons =
-    [ classes
-        ([ Tachyons.Classes.ph4 ] ++ buttonBaseTachyons)
+    [ class ("ph4 " ++ buttonBase)
     ]
 
 
 buttonTypeformTachyons =
-    [ classes
-        ([ Tachyons.Classes.ph3 ] ++ buttonBaseTachyons)
+    [ class ("ph3 " ++ buttonBase)
     ]
 
 
-buttonBaseTachyons =
-    [ Tachyons.Classes.button_reset
-    , Tachyons.Classes.b
-    , Tachyons.Classes.br2
-    , Tachyons.Classes.pv2
-    , Tachyons.Classes.ph3
-    , Tachyons.Classes.bn
-    , Tachyons.Classes.pointer
-    , Tachyons.Classes.shadow_5
-    ]
+buttonBase =
+    "button_reset b br2 pv2 ph3 bn pointer shadow_5"
 
 
-hoverStyles colorButton colorButtonBackground colorButtonHover =
+hoverStyles colorScheme =
     hover_
-        [ ( "color", colorButton )
+        [ ( "color", colorScheme.colorButton )
         ]
-        [ ( "backgroundColor", colorButtonBackground, colorButtonHover ) ]
-
-
-buttonAsideText asideText asideColor =
-    span
-        [ classes [ Tachyons.Classes.f6, Tachyons.Classes.pl3 ]
-        , Html.Attributes.style [ ( "color", asideColor ) ]
-        ]
-        [ Html.text asideText ]
-
-
-demo : Model -> Questionnaire -> Html Msg
-demo model data =
-    div [ Html.Attributes.style [ ( "color", data.colorScheme.colorMain ), ( "backgroundColor", data.colorScheme.colorBackground ) ] ]
-        [ if model.isFormActivated then
-            div []
-                [ div [ Html.Attributes.style [ ( "asdf", "asdf" ) ] ] (viewQuestions (filterQuestions data.questions) data.colorScheme)
-                , viewSubmit model data
-                , viewFooter
-                    data.colorScheme.colorFooter
-                    data.colorScheme.colorFooterBackground
-                    data.colorScheme.colorButton
-                    data.colorScheme.colorButtonBackground
-                    data.colorScheme.colorButtonHover
-                    model.numQuestionsAnswered
-                    model.totalQuestions
-                    model.footerButtonUpEnabled
-                    model.footerButtonDownEnabled
-                ]
-          else
-            viewTopSection data.topSection data.colorScheme
-        ]
+        [ ( "backgroundColor", colorScheme.colorButtonBackground, colorScheme.colorButtonHover ) ]
 
 
 filterQuestions : List Question -> List Question
@@ -546,21 +542,28 @@ type alias DependsOnConditions =
     }
 
 
-viewSubmit : Model -> Questionnaire -> Html Msg
-viewSubmit model data =
+viewSubmit : Model -> Html Msg
+viewSubmit model =
     div [ class "f3 mw7 center tc vh-50", id "submit" ]
-        [ submitButton model.demoData.colorScheme "Submit"
-        , buttonAsideText "press ENTER" data.colorScheme.colorGray
+        [ submitButton model.questionnaire.colorScheme "Submit"
+        , buttonAsideText "press ENTER" model.questionnaire.colorScheme.colorGray
         ]
 
 
-viewFooter colorFooter colorBackground colorButton colorButtonBackground colorButtonHover completed total footerButtonUpEnabled footerButtonDownEnabled =
-    div [ class "fixed left-0 right-0 bottom-0 ph6 pv3 fl w-100 bt  ", style [ ( "backgroundColor", colorBackground ), ( "color", colorFooter ) ] ]
+viewFooter : Model -> Html Msg
+viewFooter model =
+    div
+        [ class "fixed left-0 right-0 bottom-0 ph6 pv3 fl w-100 bt  "
+        , style
+            [ ( "backgroundColor", model.questionnaire.colorScheme.colorBackground )
+            , ( "color", model.questionnaire.colorScheme.colorFooter )
+            ]
+        ]
         [ div [ class "fl w-50" ]
-            (viewFooterProgressBar completed total)
+            (viewFooterProgressBar model.numQuestionsAnswered model.totalQuestions)
         , div [ class "fl w-50" ]
-            [ typeFormFooterButton colorButton colorButtonBackground colorButtonHover True footerButtonUpEnabled PreviousQuestion
-            , typeFormFooterButton colorButton colorButtonBackground colorButtonHover False footerButtonDownEnabled NextQuestion
+            [ typeFormFooterButton model.questionnaire.colorScheme True model.footerButtonUpEnabled PreviousQuestion
+            , typeFormFooterButton model.questionnaire.colorScheme False model.footerButtonDownEnabled NextQuestion
             ]
         ]
 
@@ -568,8 +571,13 @@ viewFooter colorFooter colorBackground colorButton colorButtonBackground colorBu
 viewFooterProgressBar : Int -> Int -> List (Html Msg)
 viewFooterProgressBar completed total =
     [ p [] [ text (toString completed ++ " out of " ++ toString total ++ " questions completed") ]
-    , div [ class "bg-moon-gray br-pill h1 overflow-y-hidden" ] [ div [ class "bg-blue br-pill h1 shadow-1", style [ ( "width", calculateProgressbar completed total ) ] ] [] ]
-      --, div [ class "bg-moon-gray br-pill h1 overflow-y-hidden" ] [ div [ class "bg-blue br-pill h1 shadow-1", style [ ( "width", "10%" ) ] ] [] ]
+    , div [ class "bg-moon-gray br-pill h1 overflow-y-hidden" ]
+        [ div
+            [ class "bg-blue br-pill h1 shadow-1"
+            , style [ ( "width", calculateProgressbar completed total ) ]
+            ]
+            []
+        ]
     ]
 
 
@@ -600,56 +608,28 @@ viewQuestion question colors =
             Html.map (FDMsg question) (viewDropdownQuestion question options colors)
 
 
-viewTopSection : TopSection -> ColorScheme -> Html Msg
-viewTopSection options colors =
-    div
-        [ classes
-            [ Tachyons.Classes.pt6
-            , Tachyons.Classes.f3
-            , Tachyons.Classes.mw7
-            , Tachyons.Classes.center
-            , Tachyons.Classes.tc
-            , Tachyons.Classes.vh_100
-            ]
-        , Html.Attributes.id "topsection"
-        ]
-        [ img
-            [ classes []
-            , Html.Attributes.src options.imageLink
-            ]
-            []
-        , p [ classes [] ] [ Html.text options.headerText ]
-        , div []
-            [ topSectionButton colors options.buttonText
-            , buttonAsideText options.pressText colors.colorGray
-            ]
-        ]
-
-
 viewTextQuestion : Question -> TextOptions -> ColorScheme -> Html Msg
 viewTextQuestion question options colors =
     div
-        [ classes
-            [ Tachyons.Classes.pt6
-            , Tachyons.Classes.mh7
-            , Tachyons.Classes.f3
-            , Tachyons.Classes.vh_100
-            ]
-        , Html.Attributes.id ("question" ++ toString question.questionNumber)
+        [ class "pt6 mh7 f3 vh-100"
+        , id ("question" ++ toString question.questionNumber)
         ]
         [ questionText colors question.questionNumber question.questionText
-        , div [ classes [ Tachyons.Classes.ml3 ], Html.Attributes.class "input--hoshi" ]
-            [ input [ onKeyDown KeyDown, Html.Events.onClick (TextQuestionClicked question), Html.Events.onInput (TextQuestionInputChanged question.questionNumber), Html.Attributes.class "input__field--hoshi", Html.Attributes.id "input-4", type_ "text" ]
+        , div [ class "ml3", class "input--hoshi" ]
+            [ input
+                [ onKeyDown KeyDown
+                , onClick (TextQuestionClicked question)
+                , onInput (TextQuestionInputChanged question.questionNumber)
+                , class "input__field--hoshi"
+                , id "input-4"
+                , type_ "text"
+                ]
                 []
-            , label [ Html.Attributes.class "input__label--hoshi hoshi-color-4", for "input-4" ]
+            , label [ class "input__label--hoshi hoshi-color-4", for "input-4" ]
                 []
             ]
         , div
-            [ classes
-                [ Tachyons.Classes.pt2
-                , Tachyons.Classes.ml3
-                ]
-            ]
+            [ class "pt2 ml3" ]
             [ typeFormButton colors options.buttonText question.questionNumber
             , buttonAsideText options.pressText colors.colorGray
             ]
@@ -661,10 +641,13 @@ viewTextQuestion question options colors =
 typeFormButton : ColorScheme -> String -> Int -> Html Msg
 typeFormButton colors buttonText questionNumber =
     button
-        ([ onClick (AnswerQuestion questionNumber) ] ++ (buttonTypeformTachyons) ++ (hoverStyles colors.colorButton colors.colorButtonBackground colors.colorButtonHover))
+        ([ onClick (AnswerQuestion questionNumber) ]
+            ++ (buttonTypeformTachyons)
+            ++ (hoverStyles colors)
+        )
         [ span []
-            [ Html.text buttonText ]
-        , span [ Html.Attributes.class "fa fa-check" ]
+            [ text buttonText ]
+        , span [ class "fa fa-check" ]
             []
         ]
 
@@ -673,21 +656,13 @@ viewSelectQuestion : Question -> SelectOptions -> ColorScheme -> Html Msg
 viewSelectQuestion question options colors =
     div []
         [ div
-            [ classes
-                [ Tachyons.Classes.mt6
-                , Tachyons.Classes.mh7
-                , Tachyons.Classes.f3
-                , Tachyons.Classes.vh_100
-                ]
-            , Html.Attributes.id ("question" ++ toString question.questionNumber)
+            [ class "mt6 mh7 f3 vh_100"
+            , id ("question" ++ toString question.questionNumber)
             ]
             [ questionText colors question.questionNumber question.questionText
             , ul
-                [ classes
-                    [ Tachyons.Classes.list
-                    , Tachyons.Classes.mw6
-                    ]
-                , Html.Attributes.style [ ( "color", colors.colorGray ) ]
+                [ class "list mw6"
+                , style [ ( "color", colors.colorGray ) ]
                 ]
                 (listChoices options.choices colors)
             ]
@@ -698,21 +673,13 @@ viewDropdownQuestion : Question -> DropdownOptions -> ColorScheme -> Html FD.Msg
 viewDropdownQuestion question options colors =
     div []
         [ div
-            [ classes
-                [ Tachyons.Classes.mt6
-                , Tachyons.Classes.mh7
-                , Tachyons.Classes.f3
-                , Tachyons.Classes.vh_100
-                ]
-            , Html.Attributes.id ("question" ++ toString question.questionNumber)
+            [ class "mt6 mh7 f3 vh-100"
+            , id ("question" ++ toString question.questionNumber)
             ]
             [ questionText demoData.colorScheme question.questionNumber question.questionText
             , div
-                [ classes
-                    [ Tachyons.Classes.mw7
-                    , Tachyons.Classes.pl3
-                    ]
-                , Html.Attributes.style [ ( "color", colors.colorGray ) ]
+                [ class "mw7 pl3"
+                , style [ ( "color", colors.colorGray ) ]
                 ]
                 [ FD.view options
                 ]
@@ -730,12 +697,12 @@ listChoices choices colors =
 
 
 questionText colors questionNumber body =
-    div [ Html.Attributes.class "" ]
-        [ span [ classes [ Tachyons.Classes.pr2, Tachyons.Classes.fl ] ]
-            [ span [ Html.Attributes.style [ ( "color", colors.colorGray ) ] ]
-                [ span [ classes [ Tachyons.Classes.pr1 ] ]
-                    [ Html.text (toString questionNumber) ]
-                , span [ Html.Attributes.class "fa fa-arrow-right" ]
+    div [ class "" ]
+        [ span [ class "pr2 fl" ]
+            [ span [ style [ ( "color", colors.colorGray ) ] ]
+                [ span [ class "pr1" ]
+                    [ text (toString questionNumber) ]
+                , span [ class "fa fa-arrow-right" ]
                     []
                 ]
             ]
