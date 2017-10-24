@@ -1,12 +1,12 @@
-module Colors exposing (..)
+module Colors exposing (ColorScheme)
 
-import Color exposing (..)
-import Color.Accessibility exposing (..)
-import Color.Blending exposing (..)
-import Color.Convert exposing (..)
-import Color.Gradient exposing (..)
-import Color.Interpolate exposing (..)
-import Color.Manipulate exposing (..)
+--import Color exposing (..)
+--import Color.Accessibility exposing (..)
+--import Color.Blending exposing (..)
+--import Color.Convert exposing (..)
+--import Color.Gradient exposing (..)
+--import Color.Interpolate exposing (..)
+--import Color.Manipulate exposing (..)
 
 
 type alias ColorScheme =

@@ -92,17 +92,17 @@ update msg model =
         --Change (newContent, questionNumber) ->
         TextQuestionInputChanged questionNumber newContent ->
             let
-                demoData =
+                questionnaire =
                     model.questionnaire
 
                 questions =
-                    demoData.questions
+                    questionnaire.questions
 
-                newDemoData =
-                    { demoData | questions = setQuestionAnswer questions newContent questionNumber }
+                newQuestionnaire =
+                    { questionnaire | questions = setQuestionAnswer questions newContent questionNumber }
 
                 newModel =
-                    { model | questionnaire = newDemoData }
+                    { model | questionnaire = newQuestionnaire }
             in
                 ( newModel, Cmd.none )
 
@@ -172,7 +172,6 @@ update msg model =
                     case question.questionType of
                         Dropdown options ->
                             let
-                                --( newOptions, newcmdmsg ) =
                                 newOptions =
                                     FD.update subMsg options
 
@@ -182,13 +181,13 @@ update msg model =
                                 oldDemoData =
                                     model.questionnaire
 
-                                newDemoData =
+                                newQuestionnaire =
                                     { oldDemoData | questions = newQuestions }
 
-                                newModel =
-                                    { model | questionnaire = newDemoData }
+                                newModel2 =
+                                    { model | questionnaire = newQuestionnaire }
                             in
-                                ( newModel, Cmd.none )
+                                ( newModel2, Cmd.none )
 
                         _ ->
                             ( model, Cmd.none )
@@ -248,17 +247,17 @@ setQuestionAnswered questions questionNumber =
 answerQuestion : Model -> Int -> Model
 answerQuestion model questionNumber =
     let
-        demoData =
+        questionnaire =
             model.questionnaire
 
         questions =
-            demoData.questions
+            questionnaire.questions
 
-        newDemoData =
-            { demoData | questions = setQuestionAnswered questions questionNumber }
+        newQuestionnaire =
+            { questionnaire | questions = setQuestionAnswered questions questionNumber }
 
         newModel =
-            { model | questionnaire = newDemoData }
+            { model | questionnaire = newQuestionnaire }
 
         newModel2 =
             setNumQuestionsAnswered newModel
@@ -448,8 +447,7 @@ typeFormFooterButton colorScheme isUp isEnabled action =
     else
         button
             (buttonTypeformTachyons
-                ++ [ style [ ( "color", colorScheme.colorButton ), ( "backgroundColor", colorScheme.colorButtonHover ) ] ]
-                ++ [ disabled True ]
+                ++ [ style [ ( "color", colorScheme.colorButton ), ( "backgroundColor", colorScheme.colorButtonHover ) ], disabled True ]
             )
             [ span [ class (chevronUpOrDown isUp) ]
                 []
@@ -538,11 +536,6 @@ getQuestionById questions id =
                 questions
     in
         List.head filtered
-
-
-type alias DependsOnConditions =
-    { conditions : List Bool
-    }
 
 
 viewSubmit : Model -> Html Msg

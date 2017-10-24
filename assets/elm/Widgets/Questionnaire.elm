@@ -1,10 +1,6 @@
 module Widgets.Questionnaire exposing (..)
 
 import Colors exposing (ColorScheme)
-
-
---import Widgets.FilterableDropdown as FD
-
 import List.Zipper as Zipper exposing (Zipper)
 
 
