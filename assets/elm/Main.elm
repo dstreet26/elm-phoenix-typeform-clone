@@ -12,6 +12,7 @@ import Widgets.FilterableDropdown as FD
 import Colors exposing (ColorScheme)
 import Widgets.Questionnaire exposing (..)
 import TestData.DemoData exposing (demoData)
+import Regex exposing (..)
 
 
 main : Program (Maybe Flags) Model Msg
@@ -356,7 +357,7 @@ demo model =
         ]
         [ if model.isFormActivated then
             div []
-                [ div [] (viewQuestions (filterQuestions model.questionnaire.questions) model.questionnaire.colorScheme)
+                [ div [] (viewQuestions model (filterQuestions model.questionnaire.questions) model.questionnaire.colorScheme)
                 , viewSubmit model
                 , viewFooter model
                 ]
@@ -582,26 +583,26 @@ calculateProgressbar completed total =
     toString (100 * (toFloat completed / toFloat total)) ++ "%"
 
 
-viewQuestions : List Question -> ColorScheme -> List (Html Msg)
-viewQuestions questions colors =
+viewQuestions : Model -> List Question -> ColorScheme -> List (Html Msg)
+viewQuestions model questions colors =
     List.map
         (\question ->
-            viewQuestion question colors
+            viewQuestion model question colors
         )
         questions
 
 
-viewQuestion : Question -> ColorScheme -> Html Msg
-viewQuestion question colors =
+viewQuestion : Model -> Question -> ColorScheme -> Html Msg
+viewQuestion model question colors =
     case question.questionType of
         Text options ->
             viewTextQuestion question options colors
 
         Select options ->
-            viewSelectQuestion question options colors
+            viewSelectQuestion model question options colors
 
         Dropdown options ->
-            Html.map (FDMsg question) (viewDropdownQuestion question options colors)
+            Html.map (FDMsg question) (viewDropdownQuestion model question options colors)
 
 
 viewTextQuestion : Question -> TextOptions -> ColorScheme -> Html Msg
@@ -648,14 +649,14 @@ typeFormButton colors buttonText questionNumber =
         ]
 
 
-viewSelectQuestion : Question -> SelectOptions -> ColorScheme -> Html Msg
-viewSelectQuestion question options colors =
+viewSelectQuestion : Model -> Question -> SelectOptions -> ColorScheme -> Html Msg
+viewSelectQuestion model question options colors =
     div []
         [ div
             [ class "mt6 mh7 f3 vh_100"
             , id ("question" ++ toString question.questionNumber)
             ]
-            [ questionText colors question.questionNumber question.questionText
+            [ questionText demoData.colorScheme question.questionNumber (parseQuestionText model question.questionText)
             , ul
                 [ class "list mw6"
                 , style [ ( "color", colors.colorGray ) ]
@@ -665,14 +666,14 @@ viewSelectQuestion question options colors =
         ]
 
 
-viewDropdownQuestion : Question -> DropdownOptions -> ColorScheme -> Html FD.Msg
-viewDropdownQuestion question options colors =
+viewDropdownQuestion : Model -> Question -> DropdownOptions -> ColorScheme -> Html FD.Msg
+viewDropdownQuestion model question options colors =
     div []
         [ div
             [ class "mt6 mh7 f3 vh-100"
             , id ("question" ++ toString question.questionNumber)
             ]
-            [ questionText demoData.colorScheme question.questionNumber question.questionText
+            [ questionText demoData.colorScheme question.questionNumber (parseQuestionText model question.questionText)
             , div
                 [ class "mw7 pl3"
                 , style [ ( "color", colors.colorGray ) ]
@@ -681,6 +682,62 @@ viewDropdownQuestion question options colors =
                 ]
             ]
         ]
+
+
+parseQuestionText : Model -> String -> String
+parseQuestionText model string =
+    let
+        myregex =
+            Regex.regex "{{.*?}}"
+
+        replace1 =
+            Regex.replace All myregex (\{ match } -> replacer match model.questionnaire.questions) string
+    in
+        replace1
+
+
+replacer : String -> List Question -> String
+replacer match questions =
+    let
+        myregex2 =
+            Regex.regex "question(\\d+)answer"
+
+        strippedString =
+            match |> String.dropLeft 2 |> String.dropRight 2
+
+        match4 =
+            Regex.find (AtMost 1) myregex2 strippedString
+
+        outValue =
+            case List.head match4 of
+                Just x ->
+                    case List.head x.submatches of
+                        Just firstSubMatch ->
+                            case firstSubMatch of
+                                Just submatch ->
+                                    case String.toInt submatch of
+                                        Ok id ->
+                                            --getAnswerById answers id
+                                            case getQuestionById questions id of
+                                                Just question ->
+                                                    question.answer
+
+                                                Nothing ->
+                                                    ""
+
+                                        Err err ->
+                                            err
+
+                                Nothing ->
+                                    ""
+
+                        Nothing ->
+                            ""
+
+                Nothing ->
+                    ""
+    in
+        outValue
 
 
 listChoices : List Choice -> ColorScheme -> List (Html msg)

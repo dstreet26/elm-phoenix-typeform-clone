@@ -81,7 +81,7 @@ demoDropDownQuestion =
             }
     , answer = ""
     , isAnswered = False
-    , questionText = "Hi, {{question1answer}}. What's your **gender**?"
+    , questionText = "{{question1answer}} + {{question2answer}}. Pick a country."
     , dependsOn = [ 1, 2 ]
     }
 
