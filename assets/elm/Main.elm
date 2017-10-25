@@ -356,8 +356,8 @@ demo model =
             ]
         ]
         [ if model.isFormActivated then
-            div []
-                [ div [] (viewQuestions model (filterQuestions model.questionnaire.questions) model.questionnaire.colorScheme)
+            div [ class "mh7-l mh2" ]
+                [ div [ class "" ] (viewQuestions model (filterQuestions model.questionnaire.questions) model.questionnaire.colorScheme)
                 , viewSubmit model
                 , viewFooter model
                 ]
@@ -431,28 +431,6 @@ submitButton colors buttonText =
             ++ hoverStyles colors
         )
         [ span [] [ text buttonText ] ]
-
-
-typeFormFooterButton : ColorScheme -> Bool -> Bool -> msg -> Html msg
-typeFormFooterButton colorScheme isUp isEnabled action =
-    if isEnabled then
-        button
-            ([ onClick action ]
-                ++ buttonTypeformTachyons
-                ++ hoverStyles colorScheme
-                ++ [ disabled False ]
-            )
-            [ span [ class (chevronUpOrDown isUp) ]
-                []
-            ]
-    else
-        button
-            (buttonTypeformTachyons
-                ++ [ style [ ( "color", colorScheme.colorButton ), ( "backgroundColor", colorScheme.colorButtonHover ) ], disabled True ]
-            )
-            [ span [ class (chevronUpOrDown isUp) ]
-                []
-            ]
 
 
 chevronUpOrDown : Bool -> String
@@ -541,7 +519,7 @@ getQuestionById questions id =
 
 viewSubmit : Model -> Html Msg
 viewSubmit model =
-    div [ class "f3 mw7 center tc vh-50", id "submit" ]
+    div [ class "f3 mt3 pt3 center tc vh-50", id "submit" ]
         [ submitButton model.questionnaire.colorScheme "Submit"
         , buttonAsideText "press ENTER" model.questionnaire.colorScheme.colorGray
         ]
@@ -550,7 +528,7 @@ viewSubmit model =
 viewFooter : Model -> Html Msg
 viewFooter model =
     div
-        [ class "fixed left-0 right-0 bottom-0 ph6 pv3 fl w-100 bt  "
+        [ class "fixed left-0 right-0 bottom-0 ph6-l ph2 pv3 fl w-100 bt  "
         , style
             [ ( "backgroundColor", model.questionnaire.colorScheme.colorBackground )
             , ( "color", model.questionnaire.colorScheme.colorFooter )
@@ -558,11 +536,39 @@ viewFooter model =
         ]
         [ div [ class "fl w-50" ]
             (viewFooterProgressBar model.numQuestionsAnswered model.totalQuestions)
-        , div [ class "fl w-50" ]
+        , div [ class "fl w-50 pt3" ]
             [ typeFormFooterButton model.questionnaire.colorScheme True model.footerButtonUpEnabled PreviousQuestion
             , typeFormFooterButton model.questionnaire.colorScheme False model.footerButtonDownEnabled NextQuestion
             ]
         ]
+
+
+typeFormFooterButton : ColorScheme -> Bool -> Bool -> msg -> Html msg
+typeFormFooterButton colorScheme isUp isEnabled action =
+    if isEnabled then
+        button
+            ([ onClick action, class "fr mh1" ]
+                ++ buttonTypeformTachyons
+                ++ hoverStyles colorScheme
+                ++ [ disabled False ]
+            )
+            [ span [ class (chevronUpOrDown isUp) ]
+                []
+            ]
+    else
+        button
+            ([ class "fr mh1" ]
+                ++ buttonTypeformTachyons
+                ++ [ style
+                        [ ( "color", colorScheme.colorButton )
+                        , ( "backgroundColor", colorScheme.colorButtonHover )
+                        ]
+                   , disabled True
+                   ]
+            )
+            [ span [ class (chevronUpOrDown isUp) ]
+                []
+            ]
 
 
 viewFooterProgressBar : Int -> Int -> List (Html Msg)
@@ -604,11 +610,76 @@ viewQuestion model question colors =
         Dropdown options ->
             Html.map (FDMsg question) (viewDropdownQuestion model question options colors)
 
+        PhotoSelect options ->
+            viewPhotoQuestion model question options colors
+
+
+viewPhotoQuestion : Model -> Question -> PhotoOptions -> ColorScheme -> Html Msg
+viewPhotoQuestion model question options colors =
+    div
+        [ class " f3  vh-100"
+        , id ("question" ++ toString question.questionNumber)
+        ]
+        [ questionText colors question.questionNumber question.questionText
+        , div [ class "" ]
+            [ div [ class "cf" ]
+                (List.map
+                    (\photo ->
+                        viewSinglePhotoSelect photo
+                    )
+                    options.choices
+                )
+            ]
+        ]
+
+
+viewSinglePhotoSelect : Photo -> Html Msg
+viewSinglePhotoSelect photo =
+    div [ class "fl mw5 ba br2 b--black-40 pa2 ma2 " ]
+        [ img [ alt "", class "", src photo.url ]
+            []
+        , div [ class "tc pv3 f5" ]
+            [ span [ class "ba ph2 pv1 mr2 colorSelectLetterBackground br2" ]
+                [ text photo.letter ]
+            , span []
+                [ text photo.name ]
+            ]
+        ]
+
+
+
+--div [ class "fl ba br2 b--black relative pa2 ma2 " ]
+--                  [ img [ alt "", class "", src "beach.jpg" ]
+--                      []
+--                  , div [ class "tc pv3 f5" ]
+--                      [ span [ class "ba ph2 pv1 mr2 colorSelectLetterBackground br2" ]
+--                          [ text "D" ]
+--                      , span []
+--                          [ text "Beach" ]
+--                      , span [ class "check fa fa-check" ]
+--                          []
+--                      ]
+--                  ]
+
+
+viewSinglePhotoSelected : Photo -> Html Msg
+viewSinglePhotoSelected photo =
+    div [ class "fl ba br2 b--black-40 pa2 ma2 " ]
+        [ img [ alt "", class "", src photo.url ]
+            []
+        , div [ class "tc pv3 f5" ]
+            [ span [ class "ba ph2 pv1 mr2 colorSelectLetterBackground br2" ]
+                [ text photo.letter ]
+            , span []
+                [ text photo.name ]
+            ]
+        ]
+
 
 viewTextQuestion : Question -> TextOptions -> ColorScheme -> Html Msg
 viewTextQuestion question options colors =
     div
-        [ class "pt6 mh7 f3 vh-100"
+        [ class "pt6  f3 vh-100"
         , id ("question" ++ toString question.questionNumber)
         ]
         [ questionText colors question.questionNumber question.questionText
@@ -653,7 +724,7 @@ viewSelectQuestion : Model -> Question -> SelectOptions -> ColorScheme -> Html M
 viewSelectQuestion model question options colors =
     div []
         [ div
-            [ class "mt6 mh7 f3 vh_100"
+            [ class "  f3 vh-100"
             , id ("question" ++ toString question.questionNumber)
             ]
             [ questionText demoData.colorScheme question.questionNumber (parseQuestionText model question.questionText)
@@ -670,7 +741,7 @@ viewDropdownQuestion : Model -> Question -> DropdownOptions -> ColorScheme -> Ht
 viewDropdownQuestion model question options colors =
     div []
         [ div
-            [ class "mt6 mh7 f3 vh-100"
+            [ class "  f3 vh-100"
             , id ("question" ++ toString question.questionNumber)
             ]
             [ questionText demoData.colorScheme question.questionNumber (parseQuestionText model question.questionText)

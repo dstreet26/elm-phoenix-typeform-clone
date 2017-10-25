@@ -16,6 +16,7 @@ type QuestionType
     = Text TextOptions
     | Select SelectOptions
     | Dropdown DropdownOptions
+    | PhotoSelect PhotoOptions
 
 
 type alias Choice =
@@ -40,6 +41,18 @@ type alias DropdownOptions =
     , filteredChoicesZipped : Zipper String
     , inputValue : String
     , showList : Bool
+    }
+
+
+type alias Photo =
+    { name : String
+    , url : String
+    , letter : String
+    }
+
+
+type alias PhotoOptions =
+    { choices : List Photo
     }
 
 

@@ -14,6 +14,7 @@ demoData =
         , demoAnotherFirstQuestion
         , demoSecondQuestion
         , demoDropDownQuestion
+        , demoPhotoQuestion
         ]
     , name = "hey"
     , colorScheme = lightBlue
@@ -82,6 +83,39 @@ demoDropDownQuestion =
     , answer = ""
     , isAnswered = False
     , questionText = "{{question1answer}} + {{question2answer}}. Pick a country."
+    , dependsOn = [ 1, 2 ]
+    }
+
+
+demoPhotos : List Photo
+demoPhotos =
+    [ { name = "City"
+      , url = "images/city.jpg"
+      , letter = "A"
+      }
+    , { name = "Countryside"
+      , url = "images/countryside.jpg"
+      , letter = "B"
+      }
+    , { name = "Mountain"
+      , url = "images/mountain.jpg"
+      , letter = "C"
+      }
+    , { name = "Beach"
+      , url = "images/beach.jpg"
+      , letter = "D"
+      }
+    ]
+
+
+demoPhotoQuestion : Question
+demoPhotoQuestion =
+    { questionNumber = 5
+    , questionType =
+        PhotoSelect { choices = demoPhotos }
+    , answer = ""
+    , isAnswered = False
+    , questionText = "Which of these scenes makes you feel happiest?"
     , dependsOn = [ 1, 2 ]
     }
 
