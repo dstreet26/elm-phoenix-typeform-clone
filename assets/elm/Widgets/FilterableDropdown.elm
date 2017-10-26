@@ -5,6 +5,7 @@ import Html.Events exposing (..)
 import Html.Attributes exposing (..)
 import List.Zipper as Zipper exposing (..)
 import Json.Decode as JD
+import Colors exposing (ColorScheme)
 
 
 type Msg
@@ -143,8 +144,8 @@ setListVisibility bool model =
     { model | showList = bool }
 
 
-view : Model -> Html.Html Msg
-view model =
+view : Model -> ColorScheme -> Html.Html Msg
+view model colors =
     div []
         [ div [ class "" ]
             [ div [ class "" ]

@@ -17,6 +17,7 @@ type QuestionType
     | Select SelectOptions
     | Dropdown DropdownOptions
     | PhotoSelect PhotoOptions
+    | Submit SubmitOptions
 
 
 type alias Choice =
@@ -28,6 +29,7 @@ type alias Choice =
 type alias TextOptions =
     { buttonText : String
     , pressText : String
+    , internalValue : String
     }
 
 
@@ -56,6 +58,11 @@ type alias PhotoOptions =
     }
 
 
+type alias SubmitOptions =
+    { buttonText : String
+    }
+
+
 type alias Question =
     { questionType : QuestionType
     , questionNumber : Int
@@ -63,12 +70,13 @@ type alias Question =
     , isAnswered : Bool
     , answer : String
     , dependsOn : List Int
+    , isFocused : Bool
     }
 
 
 type alias Questionnaire =
     { topSection : TopSection
-    , questions : List Question
+    , questions : Zipper Question
     , name : String
     , colorScheme : Colors.ColorScheme
     }

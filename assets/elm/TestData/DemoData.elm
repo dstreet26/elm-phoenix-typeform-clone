@@ -9,16 +9,33 @@ import List.Zipper as Zipper exposing (..)
 demoData : Questionnaire
 demoData =
     { topSection = demoTopSection
-    , questions =
-        [ demoFirstQuestion
-        , demoAnotherFirstQuestion
-        , demoSecondQuestion
-        , demoDropDownQuestion
-        , demoPhotoQuestion
-        ]
+    , questions = (Zipper.fromList questions |> Zipper.withDefault emptyQuestion)
     , name = "hey"
     , colorScheme = lightBlue
     }
+
+
+emptyQuestion : Question
+emptyQuestion =
+    { questionNumber = 0
+    , questionType = Submit { buttonText = "N/A" }
+    , answer = ""
+    , isAnswered = False
+    , questionText = "EMPTY QUESTION"
+    , dependsOn = []
+    , isFocused = False
+    }
+
+
+questions : List Question
+questions =
+    [ demoFirstQuestion
+    , demoAnotherFirstQuestion
+    , demoSecondQuestion
+    , demoDropDownQuestion
+    , demoPhotoQuestion
+    , submitQuestion
+    ]
 
 
 demoTopSection : TopSection
@@ -33,22 +50,34 @@ demoTopSection =
 demoFirstQuestion : Question
 demoFirstQuestion =
     { questionNumber = 1
-    , questionType = Text { buttonText = "OK", pressText = "press ENTER" }
+    , questionType =
+        Text
+            { buttonText = "OK"
+            , pressText = "press ENTER"
+            , internalValue = ""
+            }
     , answer = ""
     , isAnswered = False
     , questionText = "**Hello**. What's your name?*"
     , dependsOn = []
+    , isFocused = False
     }
 
 
 demoAnotherFirstQuestion : Question
 demoAnotherFirstQuestion =
     { questionNumber = 2
-    , questionType = Text { buttonText = "OK", pressText = "press ENTER" }
+    , questionType =
+        Text
+            { buttonText = "OK"
+            , pressText = "press ENTER"
+            , internalValue = ""
+            }
     , answer = ""
     , isAnswered = False
     , questionText = "Enter anything, this is a placeholder"
     , dependsOn = []
+    , isFocused = False
     }
 
 
@@ -67,6 +96,7 @@ demoSecondQuestion =
     , isAnswered = False
     , questionText = "Hi, {{question1answer}}. What's your **gender**?"
     , dependsOn = [ 1 ]
+    , isFocused = False
     }
 
 
@@ -84,6 +114,7 @@ demoDropDownQuestion =
     , isAnswered = False
     , questionText = "{{question1answer}} + {{question2answer}}. Pick a country."
     , dependsOn = [ 1, 2 ]
+    , isFocused = False
     }
 
 
@@ -117,6 +148,20 @@ demoPhotoQuestion =
     , isAnswered = False
     , questionText = "Which of these scenes makes you feel happiest?"
     , dependsOn = [ 1, 2 ]
+    , isFocused = False
+    }
+
+
+submitQuestion : Question
+submitQuestion =
+    { questionNumber = 6
+    , questionType =
+        Submit { buttonText = "Submit" }
+    , answer = ""
+    , isAnswered = False
+    , questionText = ""
+    , dependsOn = []
+    , isFocused = False
     }
 
 

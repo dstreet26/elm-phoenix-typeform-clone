@@ -6,12 +6,16 @@ import Html.Events exposing (..)
 import DynamicStyle exposing (..)
 import Markdown exposing (toHtml)
 import Ports.SmoothScroll exposing (scrollTo)
-import Keyboard
+import List.Zipper as Zipper exposing (..)
+import Dom exposing (..)
+import Task exposing (..)
+import Debug exposing (log)
+import Keyboard.Extra exposing (Key(..))
 import Json.Decode as JD
 import Widgets.FilterableDropdown as FD
 import Colors exposing (ColorScheme)
 import Widgets.Questionnaire exposing (..)
-import TestData.DemoData exposing (demoData)
+import TestData.DemoData exposing (demoData, emptyQuestion)
 import Regex exposing (..)
 
 
@@ -27,33 +31,42 @@ type alias Flags =
 
 
 type alias Model =
-    { value : Int
-    , questionnaire : Questionnaire
-    , currentActiveQuestionNumber : Int
+    { questionnaire : Questionnaire
     , isFormActivated : Bool
     , numQuestionsAnswered : Int
     , totalQuestions : Int
     , footerButtonUpEnabled : Bool
     , footerButtonDownEnabled : Bool
+    , pressedKeys : List Key
     }
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    --Sub.batch [ Keyboard.downs KeyMsg ]
-    Sub.none
+    Sub.map KeyboardMsg Keyboard.Extra.subscriptions
 
 
 emptyModel : Model
 emptyModel =
-    { value = 0
-    , questionnaire = demoData
-    , currentActiveQuestionNumber = 0
+    { questionnaire = demoData
     , isFormActivated = False
     , numQuestionsAnswered = 0
     , totalQuestions = 0
     , footerButtonUpEnabled = False
     , footerButtonDownEnabled = False
+    , pressedKeys = []
+    }
+
+
+emptyQuestionError1 : Question
+emptyQuestionError1 =
+    { questionNumber = 1
+    , questionType = Submit { buttonText = "N/A" }
+    , answer = ""
+    , isAnswered = False
+    , questionText = "Problem with question dependencies"
+    , dependsOn = []
+    , isFocused = False
     }
 
 
@@ -68,20 +81,21 @@ init flags =
 
 type Msg
     = NoOp
-    | Increment
-    | NextQuestion
-    | TextQuestionClicked Question
-    | AnswerQuestion Int
-    | PreviousQuestion
+    | AnswerQuestionWithId Int
+    | AnswerQuestion
+    | FooterNext
+    | FooterPrevious
     | ActivateForm
-    | KeyDown Keyboard.KeyCode
-    | TextQuestionInputChanged Int String
-    | FDMsg Question FD.Msg
+    | KeyboardMsg Keyboard.Extra.Msg
+    | TextQuestionInputChanged Question String
+    | TextQuestionClicked Question
+    | FDMsg FD.Msg
+    | InputFocusResult (Result Dom.Error ())
 
 
-onKeyDown : (Int -> msg) -> Attribute msg
-onKeyDown tagger =
-    on "keydown" (JD.map tagger keyCode)
+type Direction
+    = Up
+    | Down
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -90,211 +104,287 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
-        --Change (newContent, questionNumber) ->
-        TextQuestionInputChanged questionNumber newContent ->
+        TextQuestionInputChanged question newContent ->
             let
                 questionnaire =
                     model.questionnaire
 
-                questions =
-                    questionnaire.questions
-
-                newQuestionnaire =
-                    { questionnaire | questions = setQuestionAnswer questions newContent questionNumber }
-
+                --If we're not focused on the question that was just changed, we need to change focus
                 newModel =
-                    { model | questionnaire = newQuestionnaire }
+                    model
+                        |> focusModelOnId question.questionNumber
+                        |> updateCurrent newContent
             in
-                ( newModel, Cmd.none )
+                ( newModel, scrollToCurrent newModel )
 
         TextQuestionClicked question ->
-            ( { model | currentActiveQuestionNumber = question.questionNumber }, Cmd.none )
-
-        Increment ->
-            ( { model | value = model.value + 1 }, Cmd.none )
-
-        KeyDown keyCode ->
-            if keyCode == 13 then
-                if model.isFormActivated then
-                    let
-                        newModel =
-                            answerQuestion model model.currentActiveQuestionNumber
-                    in
-                        ( newModel, scrollToId newModel newModel.currentActiveQuestionNumber )
-                else
-                    ( activateForm model, Cmd.none )
-            else
-                ( model, Cmd.none )
-
-        AnswerQuestion questionNumber ->
             let
-                newModel3 =
-                    answerQuestion model questionNumber
-            in
-                ( newModel3, scrollToId newModel3 newModel3.currentActiveQuestionNumber )
+                questionnaire =
+                    model.questionnaire
 
-        NextQuestion ->
-            let
-                nextActiveQuestionNumber =
-                    model.currentActiveQuestionNumber + 1
-
+                --If we're not focused on the question that was just changed, we need to change focus
                 newModel =
-                    { model | currentActiveQuestionNumber = nextActiveQuestionNumber }
-
-                newmodel2 =
-                    handleFooterButtons newModel
+                    model
+                        |> focusModelOnId question.questionNumber
             in
-                ( newmodel2, scrollToId newmodel2 nextActiveQuestionNumber )
+                ( newModel, scrollToCurrent newModel )
 
-        PreviousQuestion ->
+        KeyboardMsg keyMsg ->
             let
-                nextActiveQuestionNumber =
-                    model.currentActiveQuestionNumber - 1
+                pressedKeys =
+                    Keyboard.Extra.update keyMsg model.pressedKeys
 
-                newModel =
-                    { model | currentActiveQuestionNumber = nextActiveQuestionNumber }
+                ( newModel, newCmdMsg ) =
+                    case model.isFormActivated of
+                        True ->
+                            if List.member Keyboard.Extra.Enter pressedKeys then
+                                handleNavigationEnter model
+                            else if (List.member Shift pressedKeys) && (List.member ArrowUp pressedKeys) then
+                                scrollDirection model Up
+                            else if (List.member Shift pressedKeys) && (List.member ArrowDown pressedKeys) then
+                                scrollDirection model Down
+                            else
+                                ( model, Cmd.none )
 
-                newmodel2 =
-                    handleFooterButtons newModel
+                        False ->
+                            if List.member Keyboard.Extra.Enter pressedKeys then
+                                ( activateForm model, Dom.focus (getIdToFocusOn model) |> Task.attempt InputFocusResult )
+                            else
+                                ( model, Cmd.none )
+
+                newModel2 =
+                    { newModel | pressedKeys = pressedKeys }
             in
-                ( newmodel2, scrollToId newmodel2 nextActiveQuestionNumber )
+                ( newModel2, newCmdMsg )
+
+        AnswerQuestionWithId id ->
+            answerQuestion (model |> focusModelOnId id)
+
+        AnswerQuestion ->
+            answerQuestion model
+
+        FooterNext ->
+            scrollDirection model Down
+
+        FooterPrevious ->
+            scrollDirection model Up
 
         ActivateForm ->
             let
                 newModel =
                     activateForm model
-            in
-                ( newModel, Cmd.none )
 
-        --FDMsg id subMsg ->
-        FDMsg question subMsg ->
+                idToFocusOn =
+                    getIdToFocusOn model
+            in
+                ( newModel, Dom.focus idToFocusOn |> Task.attempt InputFocusResult )
+
+        InputFocusResult result ->
+            case result of
+                Ok value ->
+                    ( model, Cmd.none )
+
+                Err error ->
+                    case error of
+                        Dom.NotFound s ->
+                            ( model, Cmd.none )
+
+        FDMsg subMsg ->
             let
-                ( newModel, newcmdmsg ) =
-                    case question.questionType of
+                ( newModel, newCmdMsg ) =
+                    case (Zipper.current model.questionnaire.questions).questionType of
                         Dropdown options ->
                             let
                                 newOptions =
                                     FD.update subMsg options
 
                                 newQuestions =
-                                    updateQuestionsWithId model question newOptions
+                                    Zipper.mapCurrent (\x -> { x | questionType = Dropdown newOptions }) model.questionnaire.questions
 
-                                oldDemoData =
-                                    model.questionnaire
-
-                                newQuestionnaire =
-                                    { oldDemoData | questions = newQuestions }
-
-                                newModel2 =
-                                    { model | questionnaire = newQuestionnaire }
+                                newModel =
+                                    model |> setQuestionsDeep newQuestions
                             in
-                                ( newModel2, Cmd.none )
+                                ( newModel, Cmd.none )
 
                         _ ->
                             ( model, Cmd.none )
             in
-                ( newModel, newcmdmsg )
+                ( newModel, newCmdMsg )
 
 
-updateQuestionsWithId : Model -> Question -> DropdownOptions -> List Question
-updateQuestionsWithId model question newOptions =
-    List.map
-        (\x ->
-            if x.questionNumber == question.questionNumber then
-                { x | questionType = Dropdown newOptions }
-            else
-                x
-        )
-        model.questionnaire.questions
-
-
-activateForm : Model -> Model
-activateForm model =
-    model |> setActivated |> setTotalQuestions |> setCurrentQuestionToFirst |> handleFooterButtons
-
-
-handleFooterButtons : Model -> Model
-handleFooterButtons model =
-    --current active id should be 0 initially
-    --if we're at the bottom, then set the down one to disabled
-    --if we're at the top, then set the top one to disabled
-    if model.currentActiveQuestionNumber > model.totalQuestions then
-        --we're at the bottom
-        { model | footerButtonUpEnabled = True, footerButtonDownEnabled = False }
-    else if model.currentActiveQuestionNumber == 1 then
-        --we're at the top
-        { model | footerButtonUpEnabled = False, footerButtonDownEnabled = True }
-    else
-        --we're in the middle
-        { model | footerButtonUpEnabled = True, footerButtonDownEnabled = True }
-
-
-setQuestionAnswered : List Question -> Int -> List Question
-setQuestionAnswered questions questionNumber =
-    List.map
-        (\question ->
-            if question.questionNumber == questionNumber then
-                let
-                    question2 =
-                        testSetIsAnswered question
-                in
-                    testSetIsAnswered question2
-            else
-                question
-        )
-        questions
-
-
-answerQuestion : Model -> Int -> Model
-answerQuestion model questionNumber =
+updateCurrent : String -> Model -> Model
+updateCurrent newContent model =
     let
-        questionnaire =
-            model.questionnaire
+        newZipper =
+            Zipper.mapCurrent (updateInternalWidgetAnswer newContent) model.questionnaire.questions
+    in
+        model |> setQuestionsDeep newZipper
 
-        questions =
-            questionnaire.questions
 
-        newQuestionnaire =
-            { questionnaire | questions = setQuestionAnswered questions questionNumber }
+updateInternalWidgetAnswer : String -> Question -> Question
+updateInternalWidgetAnswer newContent question =
+    let
+        newQuestion =
+            case question.questionType of
+                Text options ->
+                    let
+                        newOptions =
+                            { options | internalValue = newContent }
+                    in
+                        { question | questionType = Text newOptions }
+
+                _ ->
+                    question
+    in
+        newQuestion
+
+
+focusModelOnId : Int -> Model -> Model
+focusModelOnId questionNumber model =
+    let
+        newZipper =
+            model.questionnaire.questions
+                |> Zipper.first
+                |> Zipper.find (\x -> x.questionNumber == questionNumber)
+                |> Zipper.withDefault emptyQuestion
+    in
+        model |> setQuestionsDeep newZipper
+
+
+getIdToFocusOn : Model -> String
+getIdToFocusOn model =
+    let
+        currentQuestion =
+            Zipper.current model.questionnaire.questions
+    in
+        "input " ++ (toString currentQuestion.questionNumber)
+
+
+scrollDirection : Model -> Direction -> ( Model, Cmd Msg )
+scrollDirection model direction =
+    let
+        currentId =
+            (Zipper.current model.questionnaire.questions).questionNumber
+
+        filteredQuestions =
+            model.questionnaire.questions
+                |> filterQuestions
+                |> Zipper.withDefault emptyQuestionError1
+                |> Zipper.find (\x -> x.questionNumber == currentId)
+                |> Zipper.withDefault (Zipper.current model.questionnaire.questions)
+
+        nextOrPrevious =
+            case direction of
+                Up ->
+                    filteredQuestions
+                        |> Zipper.previous
+                        |> Zipper.withDefault (Zipper.current model.questionnaire.questions)
+
+                Down ->
+                    filteredQuestions
+                        |> Zipper.next
+                        |> Zipper.withDefault (Zipper.current model.questionnaire.questions)
+
+        nextFilteredNumber =
+            (Zipper.current nextOrPrevious).questionNumber
+
+        newZipper =
+            model.questionnaire.questions
+                |> Zipper.first
+                |> Zipper.find (\x -> x.questionNumber == nextFilteredNumber)
+                |> Zipper.withDefault emptyQuestion
 
         newModel =
-            { model | questionnaire = newQuestionnaire }
-
-        newModel2 =
-            setNumQuestionsAnswered newModel
-
-        newModel3 =
-            incrementCurrentlyActiveQuestion newModel2
-
-        newModel4 =
-            handleFooterButtons newModel3
+            model
+                |> setQuestionsDeep newZipper
+                |> handleFooterButtons
     in
-        newModel4
+        ( newModel, scrollToCurrent newModel )
 
 
-incrementCurrentlyActiveQuestion : Model -> Model
-incrementCurrentlyActiveQuestion model =
-    { model | currentActiveQuestionNumber = model.currentActiveQuestionNumber + 1 }
+scrollToCurrent : Model -> Cmd Msg
+scrollToCurrent model =
+    let
+        question =
+            Zipper.current model.questionnaire.questions
+
+        idToScrollTo =
+            questionIdString question.questionNumber
+
+        newCmd =
+            case question.questionType of
+                Text options ->
+                    Cmd.batch [ scrollTo idToScrollTo, Dom.focus (getIdToFocusOn model) |> Task.attempt InputFocusResult ]
+
+                _ ->
+                    scrollTo idToScrollTo
+    in
+        newCmd
 
 
-scrollToId : Model -> Int -> Cmd Msg
-scrollToId model id =
-    if id > model.totalQuestions then
-        scrollTo "submit"
-    else
-        scrollTo ("question" ++ toString id)
+setQuestions : Zipper Question -> Questionnaire -> Questionnaire
+setQuestions newQuestions questionnaire =
+    { questionnaire | questions = newQuestions }
 
 
-setQuestionAnswer : List Question -> String -> Int -> List Question
-setQuestionAnswer questions newContent questionNumber =
-    List.map
-        (\question ->
-            if question.questionNumber == questionNumber then
-                { question | answer = newContent }
-            else
-                question
-        )
-        questions
+setQuestionsDeep : Zipper Question -> Model -> Model
+setQuestionsDeep newQuestions model =
+    { model | questionnaire = model.questionnaire |> setQuestions newQuestions }
+
+
+setCurrentAnswer : String -> Model -> Model
+setCurrentAnswer answer model =
+    let
+        newQuestions =
+            Zipper.mapCurrent (\q -> { q | answer = answer }) model.questionnaire.questions
+    in
+        model |> setQuestionsDeep newQuestions
+
+
+setCurrentIsAnswered : Bool -> Model -> Model
+setCurrentIsAnswered bool model =
+    let
+        newQuestions =
+            Zipper.mapCurrent (\q -> { q | isAnswered = bool }) model.questionnaire.questions
+    in
+        model |> setQuestionsDeep newQuestions
+
+
+answerQuestion : Model -> ( Model, Cmd Msg )
+answerQuestion model =
+    let
+        answer =
+            toAnswer (Zipper.current model.questionnaire.questions)
+
+        newModel =
+            model
+                |> setCurrentAnswer answer
+                |> setCurrentIsAnswered True
+                |> setNumQuestionsAnswered
+
+        ( newModel2, newCmdMsg ) =
+            scrollDirection newModel Down
+    in
+        ( newModel2, newCmdMsg )
+
+
+toAnswer : Question -> String
+toAnswer question =
+    case question.questionType of
+        Text options ->
+            options.internalValue
+
+        Widgets.Questionnaire.Select options ->
+            ""
+
+        Dropdown options ->
+            options.inputValue
+
+        PhotoSelect options ->
+            ""
+
+        Submit options ->
+            ""
 
 
 setNumQuestionsAnswered : Model -> Model
@@ -310,24 +400,9 @@ getNumQuestionsAnswered model =
                 (\x ->
                     x.isAnswered == True
                 )
-                model.questionnaire.questions
+                (Zipper.toList model.questionnaire.questions)
     in
         List.length questionsAnswered
-
-
-testSetIsAnswered : Question -> Question
-testSetIsAnswered question =
-    { question | isAnswered = True }
-
-
-testSetAnswer : Question -> String -> Question
-testSetAnswer question answer =
-    { question | answer = answer }
-
-
-setCurrentQuestionToFirst : Model -> Model
-setCurrentQuestionToFirst model =
-    { model | currentActiveQuestionNumber = 1 }
 
 
 setActivated : Model -> Model
@@ -337,13 +412,166 @@ setActivated model =
 
 setTotalQuestions : Model -> Model
 setTotalQuestions model =
-    { model | totalQuestions = List.length model.questionnaire.questions }
+    --minus 1 for the submit button
+    { model | totalQuestions = (List.length (Zipper.toList model.questionnaire.questions) - 1) }
+
+
+handleNavigationEnter : Model -> ( Model, Cmd Msg )
+handleNavigationEnter model =
+    answerQuestion model
+
+
+activateForm : Model -> Model
+activateForm model =
+    model
+        |> setActivated
+        |> setTotalQuestions
+        |> handleFooterButtons
+
+
+handleFooterButtons : Model -> Model
+handleFooterButtons model =
+    let
+        zipper =
+            model.questionnaire.questions
+
+        newModel =
+            if Zipper.previous zipper == Nothing then
+                { model | footerButtonUpEnabled = False, footerButtonDownEnabled = True }
+            else if Zipper.next zipper == Nothing then
+                { model | footerButtonUpEnabled = True, footerButtonDownEnabled = False }
+            else
+                { model | footerButtonUpEnabled = True, footerButtonDownEnabled = True }
+    in
+        newModel
+
+
+filterQuestions : Zipper Question -> Maybe (Zipper Question)
+filterQuestions questions =
+    let
+        filteredQuestions =
+            List.filter
+                (\q ->
+                    not (anyDependsOn questions q)
+                )
+                (Zipper.toList questions)
+    in
+        Zipper.fromList filteredQuestions
+
+
+anyDependsOn : Zipper Question -> Question -> Bool
+anyDependsOn questions q =
+    List.any
+        (\x ->
+            not x
+        )
+        (List.map
+            (\questionNumber ->
+                let
+                    questionById =
+                        getQuestionById questions questionNumber
+
+                    isAnswered =
+                        case questionById of
+                            Just x ->
+                                x.isAnswered
+
+                            Nothing ->
+                                True
+                in
+                    isAnswered
+            )
+            q.dependsOn
+        )
+
+
+getQuestionById : Zipper Question -> Int -> Maybe Question
+getQuestionById questions id =
+    let
+        filtered =
+            List.filter
+                (\q ->
+                    if q.questionNumber == id then
+                        True
+                    else
+                        False
+                )
+                (Zipper.toList questions)
+    in
+        List.head filtered
+
+
+calculateProgressbar : Int -> Int -> String
+calculateProgressbar completed total =
+    toString (100 * (toFloat completed / toFloat total)) ++ "%"
+
+
+questionIdString : Int -> String
+questionIdString id =
+    "question" ++ toString id
+
+
+parseQuestionText : Model -> String -> String
+parseQuestionText model string =
+    let
+        myregex =
+            Regex.regex "{{.*?}}"
+
+        replace1 =
+            Regex.replace All myregex (\{ match } -> replacer match model.questionnaire.questions) string
+    in
+        replace1
+
+
+replacer : String -> Zipper Question -> String
+replacer match questions =
+    let
+        myregex2 =
+            Regex.regex "question(\\d+)answer"
+
+        strippedString =
+            match |> String.dropLeft 2 |> String.dropRight 2
+
+        match4 =
+            Regex.find (AtMost 1) myregex2 strippedString
+
+        outValue =
+            case List.head match4 of
+                Just x ->
+                    case List.head x.submatches of
+                        Just firstSubMatch ->
+                            case firstSubMatch of
+                                Just submatch ->
+                                    case String.toInt submatch of
+                                        Ok id ->
+                                            --getAnswerById answers id
+                                            case getQuestionById questions id of
+                                                Just question ->
+                                                    question.answer
+
+                                                Nothing ->
+                                                    ""
+
+                                        Err err ->
+                                            err
+
+                                Nothing ->
+                                    ""
+
+                        Nothing ->
+                            ""
+
+                Nothing ->
+                    ""
+    in
+        outValue
 
 
 view : Model -> Html Msg
 view model =
     div [ class "fl w-100 montserrat" ]
-        [ demo model
+        [ div [] [ text (toString model.pressedKeys) ]
+        , demo model
         ]
 
 
@@ -357,8 +585,7 @@ demo model =
         ]
         [ if model.isFormActivated then
             div [ class "mh7-l mh2" ]
-                [ div [ class "" ] (viewQuestions model (filterQuestions model.questionnaire.questions) model.questionnaire.colorScheme)
-                , viewSubmit model
+                [ div [ class "" ] (viewQuestions model (filterQuestions model.questionnaire.questions |> Zipper.withDefault emptyQuestion) model.questionnaire.colorScheme)
                 , viewFooter model
                 ]
           else
@@ -394,13 +621,88 @@ topSectionButton colors buttonText =
         [ span [] [ text buttonText ] ]
 
 
-buttonAsideText : String -> String -> Html msg
-buttonAsideText asideText asideColor =
-    span
-        [ class "f6 pl3"
-        , style [ ( "color", asideColor ) ]
+viewQuestions : Model -> Zipper Question -> ColorScheme -> List (Html Msg)
+viewQuestions model questions colors =
+    List.map
+        (\question ->
+            viewQuestion model question colors
+        )
+        (Zipper.toList questions)
+
+
+viewQuestion : Model -> Question -> ColorScheme -> Html Msg
+viewQuestion model question colors =
+    case question.questionType of
+        Text options ->
+            viewTextQuestion question options colors
+
+        Widgets.Questionnaire.Select options ->
+            viewSelectQuestion model question options colors
+
+        Dropdown options ->
+            --Html.map (FDMsg question) (viewDropdownQuestion model question options colors)
+            Html.map FDMsg (viewDropdownQuestion model question options colors)
+
+        PhotoSelect options ->
+            viewPhotoQuestion model question options colors
+
+        Submit options ->
+            viewSubmit model question options colors
+
+
+viewTextQuestion : Question -> TextOptions -> ColorScheme -> Html Msg
+viewTextQuestion question options colors =
+    div
+        [ class "pt6  f3 vh-100"
+        , id (questionIdString question.questionNumber)
         ]
-        [ text asideText ]
+        [ questionText colors question.questionNumber question.questionText
+        , div [ class "ml3", class "input--hoshi" ]
+            [ input
+                [ class "input__field--hoshi"
+                , onClick (TextQuestionClicked question)
+                , onInput (TextQuestionInputChanged question)
+                , id ("input " ++ toString question.questionNumber)
+                , type_ "text"
+                ]
+                []
+            , label [ class "input__label--hoshi hoshi-color-4", for "input-4" ]
+                []
+            ]
+        , div
+            [ class "pt2 ml3" ]
+            [ typeFormButton colors options.buttonText question.questionNumber
+            , buttonAsideText options.pressText colors.colorGray
+            ]
+        , Html.br []
+            []
+        ]
+
+
+viewSelectQuestion : Model -> Question -> SelectOptions -> ColorScheme -> Html Msg
+viewSelectQuestion model question options colors =
+    div []
+        [ div
+            [ class "  f3 vh-100"
+            , id (questionIdString question.questionNumber)
+            ]
+            [ questionText demoData.colorScheme question.questionNumber (parseQuestionText model question.questionText)
+            , ul
+                [ class "list mw6"
+                , style [ ( "color", colors.colorGray ) ]
+                ]
+                (listChoices options.choices colors)
+            ]
+        ]
+
+
+listChoices : List Choice -> ColorScheme -> List (Html msg)
+listChoices choices colors =
+    List.map
+        (\choice ->
+            liElement choice.letter choice.body colors.colorSelectBackground colors.colorSelectHover colors.colorSelectLetterBackground
+        )
+        choices
 
 
 liElement : String -> String -> CSSValue -> CSSValue -> String -> Html msg
@@ -421,6 +723,94 @@ liElementTachyons : List (Attribute msg)
 liElementTachyons =
     [ class "ba pa3 br2 b--black-40 mv3 pointer"
     ]
+
+
+viewDropdownQuestion : Model -> Question -> DropdownOptions -> ColorScheme -> Html FD.Msg
+viewDropdownQuestion model question options colors =
+    div []
+        [ div
+            [ class "  f3 vh-100"
+            , id (questionIdString question.questionNumber)
+            ]
+            [ questionText demoData.colorScheme question.questionNumber (parseQuestionText model question.questionText)
+            , div
+                [ class "mw7 pl3"
+                , style [ ( "color", colors.colorGray ) ]
+                ]
+                [ FD.view options colors
+                ]
+            ]
+        ]
+
+
+viewPhotoQuestion : Model -> Question -> PhotoOptions -> ColorScheme -> Html Msg
+viewPhotoQuestion model question options colors =
+    div
+        [ class " f3  vh-100"
+        , id (questionIdString question.questionNumber)
+        ]
+        [ questionText colors question.questionNumber question.questionText
+        , div [ class "" ]
+            [ div [ class "cf" ]
+                (List.map
+                    (\photo ->
+                        viewSinglePhotoSelect photo
+                    )
+                    options.choices
+                )
+            ]
+        ]
+
+
+viewSinglePhotoSelect : Photo -> Html Msg
+viewSinglePhotoSelect photo =
+    div [ class "fl mw5 ba br2 b--black-40 pa2 ma2 " ]
+        [ img [ alt "", class "", src photo.url ]
+            []
+        , div [ class "tc pv3 f5" ]
+            [ span [ class "ba ph2 pv1 mr2 colorSelectLetterBackground br2" ]
+                [ text photo.letter ]
+            , span []
+                [ text photo.name ]
+            ]
+        ]
+
+
+viewSinglePhotoSelected : Photo -> Html Msg
+viewSinglePhotoSelected photo =
+    div [ class "fl ba br2 b--black-40 pa2 ma2 " ]
+        [ img [ alt "", class "", src photo.url ]
+            []
+        , div [ class "tc pv3 f5" ]
+            [ span [ class "ba ph2 pv1 mr2 colorSelectLetterBackground br2" ]
+                [ text photo.letter ]
+            , span []
+                [ text photo.name ]
+            ]
+        ]
+
+
+typeFormButton : ColorScheme -> String -> Int -> Html Msg
+typeFormButton colors buttonText questionNumber =
+    button
+        ([ onClick (AnswerQuestionWithId questionNumber) ]
+            ++ buttonTypeformTachyons
+            ++ hoverStyles colors
+        )
+        [ span []
+            [ text buttonText ]
+        , span [ class "fa fa-check" ]
+            []
+        ]
+
+
+buttonAsideText : String -> String -> Html msg
+buttonAsideText asideText asideColor =
+    span
+        [ class "f6 pl3"
+        , style [ ( "color", asideColor ) ]
+        ]
+        [ text asideText ]
 
 
 submitButton : ColorScheme -> String -> Html Msg
@@ -466,61 +856,26 @@ hoverStyles colorScheme =
         [ ( "backgroundColor", colorScheme.colorButtonBackground, colorScheme.colorButtonHover ) ]
 
 
-filterQuestions : List Question -> List Question
-filterQuestions questions =
-    List.filter
-        (\q ->
-            not (anyDependsOn questions q)
-        )
-        questions
+questionText : ColorScheme -> Int -> String -> Html msg
+questionText colors questionNumber body =
+    div [ class "" ]
+        [ span [ class "pr2 fl" ]
+            [ span [ style [ ( "color", colors.colorGray ) ] ]
+                [ span [ class "pr1" ]
+                    [ text (toString questionNumber) ]
+                , span [ class "fa fa-arrow-right" ]
+                    []
+                ]
+            ]
+        , span [] <|
+            toHtml Nothing body
+        ]
 
 
-anyDependsOn : List Question -> Question -> Bool
-anyDependsOn questions q =
-    List.any
-        (\x ->
-            not x
-        )
-        (List.map
-            (\questionNumber ->
-                let
-                    questionById =
-                        getQuestionById questions questionNumber
-
-                    isAnswered =
-                        case questionById of
-                            Just x ->
-                                x.isAnswered
-
-                            Nothing ->
-                                True
-                in
-                    isAnswered
-            )
-            q.dependsOn
-        )
-
-
-getQuestionById : List Question -> Int -> Maybe Question
-getQuestionById questions id =
-    let
-        filtered =
-            List.filter
-                (\q ->
-                    if q.questionNumber == id then
-                        True
-                    else
-                        False
-                )
-                questions
-    in
-        List.head filtered
-
-
-viewSubmit : Model -> Html Msg
-viewSubmit model =
-    div [ class "f3 mt3 pt3 center tc vh-50", id "submit" ]
-        [ submitButton model.questionnaire.colorScheme "Submit"
+viewSubmit : Model -> Question -> SubmitOptions -> ColorScheme -> Html Msg
+viewSubmit model question options colors =
+    div [ class "f3 mt3 pt3 center tc vh-50", id (questionIdString question.questionNumber) ]
+        [ submitButton model.questionnaire.colorScheme options.buttonText
         , buttonAsideText "press ENTER" model.questionnaire.colorScheme.colorGray
         ]
 
@@ -537,8 +892,8 @@ viewFooter model =
         [ div [ class "fl w-50" ]
             (viewFooterProgressBar model.numQuestionsAnswered model.totalQuestions)
         , div [ class "fl w-50 pt3" ]
-            [ typeFormFooterButton model.questionnaire.colorScheme True model.footerButtonUpEnabled PreviousQuestion
-            , typeFormFooterButton model.questionnaire.colorScheme False model.footerButtonDownEnabled NextQuestion
+            [ typeFormFooterButton model.questionnaire.colorScheme True model.footerButtonUpEnabled FooterPrevious
+            , typeFormFooterButton model.questionnaire.colorScheme False model.footerButtonDownEnabled FooterNext
             ]
         ]
 
@@ -582,255 +937,3 @@ viewFooterProgressBar completed total =
             []
         ]
     ]
-
-
-calculateProgressbar : Int -> Int -> String
-calculateProgressbar completed total =
-    toString (100 * (toFloat completed / toFloat total)) ++ "%"
-
-
-viewQuestions : Model -> List Question -> ColorScheme -> List (Html Msg)
-viewQuestions model questions colors =
-    List.map
-        (\question ->
-            viewQuestion model question colors
-        )
-        questions
-
-
-viewQuestion : Model -> Question -> ColorScheme -> Html Msg
-viewQuestion model question colors =
-    case question.questionType of
-        Text options ->
-            viewTextQuestion question options colors
-
-        Select options ->
-            viewSelectQuestion model question options colors
-
-        Dropdown options ->
-            Html.map (FDMsg question) (viewDropdownQuestion model question options colors)
-
-        PhotoSelect options ->
-            viewPhotoQuestion model question options colors
-
-
-viewPhotoQuestion : Model -> Question -> PhotoOptions -> ColorScheme -> Html Msg
-viewPhotoQuestion model question options colors =
-    div
-        [ class " f3  vh-100"
-        , id ("question" ++ toString question.questionNumber)
-        ]
-        [ questionText colors question.questionNumber question.questionText
-        , div [ class "" ]
-            [ div [ class "cf" ]
-                (List.map
-                    (\photo ->
-                        viewSinglePhotoSelect photo
-                    )
-                    options.choices
-                )
-            ]
-        ]
-
-
-viewSinglePhotoSelect : Photo -> Html Msg
-viewSinglePhotoSelect photo =
-    div [ class "fl mw5 ba br2 b--black-40 pa2 ma2 " ]
-        [ img [ alt "", class "", src photo.url ]
-            []
-        , div [ class "tc pv3 f5" ]
-            [ span [ class "ba ph2 pv1 mr2 colorSelectLetterBackground br2" ]
-                [ text photo.letter ]
-            , span []
-                [ text photo.name ]
-            ]
-        ]
-
-
-
---div [ class "fl ba br2 b--black relative pa2 ma2 " ]
---                  [ img [ alt "", class "", src "beach.jpg" ]
---                      []
---                  , div [ class "tc pv3 f5" ]
---                      [ span [ class "ba ph2 pv1 mr2 colorSelectLetterBackground br2" ]
---                          [ text "D" ]
---                      , span []
---                          [ text "Beach" ]
---                      , span [ class "check fa fa-check" ]
---                          []
---                      ]
---                  ]
-
-
-viewSinglePhotoSelected : Photo -> Html Msg
-viewSinglePhotoSelected photo =
-    div [ class "fl ba br2 b--black-40 pa2 ma2 " ]
-        [ img [ alt "", class "", src photo.url ]
-            []
-        , div [ class "tc pv3 f5" ]
-            [ span [ class "ba ph2 pv1 mr2 colorSelectLetterBackground br2" ]
-                [ text photo.letter ]
-            , span []
-                [ text photo.name ]
-            ]
-        ]
-
-
-viewTextQuestion : Question -> TextOptions -> ColorScheme -> Html Msg
-viewTextQuestion question options colors =
-    div
-        [ class "pt6  f3 vh-100"
-        , id ("question" ++ toString question.questionNumber)
-        ]
-        [ questionText colors question.questionNumber question.questionText
-        , div [ class "ml3", class "input--hoshi" ]
-            [ input
-                [ onKeyDown KeyDown
-                , onClick (TextQuestionClicked question)
-                , onInput (TextQuestionInputChanged question.questionNumber)
-                , class "input__field--hoshi"
-                , id "input-4"
-                , type_ "text"
-                ]
-                []
-            , label [ class "input__label--hoshi hoshi-color-4", for "input-4" ]
-                []
-            ]
-        , div
-            [ class "pt2 ml3" ]
-            [ typeFormButton colors options.buttonText question.questionNumber
-            , buttonAsideText options.pressText colors.colorGray
-            ]
-        , Html.br []
-            []
-        ]
-
-
-typeFormButton : ColorScheme -> String -> Int -> Html Msg
-typeFormButton colors buttonText questionNumber =
-    button
-        ([ onClick (AnswerQuestion questionNumber) ]
-            ++ buttonTypeformTachyons
-            ++ hoverStyles colors
-        )
-        [ span []
-            [ text buttonText ]
-        , span [ class "fa fa-check" ]
-            []
-        ]
-
-
-viewSelectQuestion : Model -> Question -> SelectOptions -> ColorScheme -> Html Msg
-viewSelectQuestion model question options colors =
-    div []
-        [ div
-            [ class "  f3 vh-100"
-            , id ("question" ++ toString question.questionNumber)
-            ]
-            [ questionText demoData.colorScheme question.questionNumber (parseQuestionText model question.questionText)
-            , ul
-                [ class "list mw6"
-                , style [ ( "color", colors.colorGray ) ]
-                ]
-                (listChoices options.choices colors)
-            ]
-        ]
-
-
-viewDropdownQuestion : Model -> Question -> DropdownOptions -> ColorScheme -> Html FD.Msg
-viewDropdownQuestion model question options colors =
-    div []
-        [ div
-            [ class "  f3 vh-100"
-            , id ("question" ++ toString question.questionNumber)
-            ]
-            [ questionText demoData.colorScheme question.questionNumber (parseQuestionText model question.questionText)
-            , div
-                [ class "mw7 pl3"
-                , style [ ( "color", colors.colorGray ) ]
-                ]
-                [ FD.view options
-                ]
-            ]
-        ]
-
-
-parseQuestionText : Model -> String -> String
-parseQuestionText model string =
-    let
-        myregex =
-            Regex.regex "{{.*?}}"
-
-        replace1 =
-            Regex.replace All myregex (\{ match } -> replacer match model.questionnaire.questions) string
-    in
-        replace1
-
-
-replacer : String -> List Question -> String
-replacer match questions =
-    let
-        myregex2 =
-            Regex.regex "question(\\d+)answer"
-
-        strippedString =
-            match |> String.dropLeft 2 |> String.dropRight 2
-
-        match4 =
-            Regex.find (AtMost 1) myregex2 strippedString
-
-        outValue =
-            case List.head match4 of
-                Just x ->
-                    case List.head x.submatches of
-                        Just firstSubMatch ->
-                            case firstSubMatch of
-                                Just submatch ->
-                                    case String.toInt submatch of
-                                        Ok id ->
-                                            --getAnswerById answers id
-                                            case getQuestionById questions id of
-                                                Just question ->
-                                                    question.answer
-
-                                                Nothing ->
-                                                    ""
-
-                                        Err err ->
-                                            err
-
-                                Nothing ->
-                                    ""
-
-                        Nothing ->
-                            ""
-
-                Nothing ->
-                    ""
-    in
-        outValue
-
-
-listChoices : List Choice -> ColorScheme -> List (Html msg)
-listChoices choices colors =
-    List.map
-        (\choice ->
-            liElement choice.letter choice.body colors.colorSelectBackground colors.colorSelectHover colors.colorSelectLetterBackground
-        )
-        choices
-
-
-questionText : ColorScheme -> Int -> String -> Html msg
-questionText colors questionNumber body =
-    div [ class "" ]
-        [ span [ class "pr2 fl" ]
-            [ span [ style [ ( "color", colors.colorGray ) ] ]
-                [ span [ class "pr1" ]
-                    [ text (toString questionNumber) ]
-                , span [ class "fa fa-arrow-right" ]
-                    []
-                ]
-            ]
-        , span [] <|
-            toHtml Nothing body
-        ]
