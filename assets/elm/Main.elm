@@ -1081,8 +1081,8 @@ viewFooter model =
         [ div [ class "fl w-50" ]
             (viewFooterProgressBar model.numQuestionsAnswered model.totalQuestions)
         , div [ class "fl w-50 pt3" ]
-            [ typeFormFooterButton model.questionnaire.colorScheme True model.footerButtonUpEnabled FooterPrevious
-            , typeFormFooterButton model.questionnaire.colorScheme False model.footerButtonDownEnabled FooterNext
+            [ typeFormFooterButton model.questionnaire.colorScheme False model.footerButtonDownEnabled FooterNext
+            , typeFormFooterButton model.questionnaire.colorScheme True model.footerButtonUpEnabled FooterPrevious
             ]
         ]
 
