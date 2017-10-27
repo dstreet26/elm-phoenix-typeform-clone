@@ -202,8 +202,16 @@ update msg model =
 
                                 newModel =
                                     model |> setQuestionsDeep newQuestions
+
+                                ( newModel2, newCmdMsg ) =
+                                    case subMsg of
+                                        FD.SelectChoice choice ->
+                                            answerQuestion newModel
+
+                                        _ ->
+                                            ( newModel, Cmd.none )
                             in
-                                ( newModel, Cmd.none )
+                                ( newModel2, newCmdMsg )
 
                         _ ->
                             ( model, Cmd.none )
