@@ -182,8 +182,8 @@ renderArrow { showList } =
 
 
 theList { filteredChoicesZipped } =
-    div [ class "absolute nano  w-30" ]
-        [ ul [ class "list pl0 f3 z-2 overflow-auto   vh-50 " ]
+    div [ class "absolute nano  z-2 w-30" ]
+        [ ul [ class "list pl0 f3  overflow-auto   vh-50 " ]
             (List.map (\choice -> viewLiNormal choice) (Zipper.before filteredChoicesZipped)
                 ++ [ viewLiHighlighted (Zipper.current filteredChoicesZipped) ]
                 ++ List.map (\choice -> viewLiNormal choice) (Zipper.after filteredChoicesZipped)
@@ -192,10 +192,10 @@ theList { filteredChoicesZipped } =
 
 
 viewLiNormal choice =
-    li [ onClick (SelectChoice choice), class "ba bw1 b--black-20 br2 mv2 ph2 pv2 pointer bg-white-50 hover-bg-silver" ]
+    li [ onClick (SelectChoice choice), class " ba bw1 b--black-20 br2 mv2 ph2 pv2 pointer bg-white-50 hover-bg-silver" ]
         [ text choice ]
 
 
 viewLiHighlighted choice =
-    li [ onClick (SelectChoice choice), class "ba bw1 b--black-20 br2 mv2 ph2 pv2 pointer bg-silver hover-bg-silver" ]
+    li [ onClick (SelectChoice choice), class " ba bw1 b--black-20 br2 mv2 ph2 pv2 pointer bg-silver hover-bg-silver" ]
         [ text choice ]

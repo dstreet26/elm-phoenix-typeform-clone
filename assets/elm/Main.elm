@@ -830,9 +830,9 @@ viewQuestion model question colors =
 
 questionContainerClasses question =
     if question.isFocused then
-        class "pt6 f3"
+        class "pt6  f3"
     else
-        class "pt6 f3 o-30"
+        class "pt6  f3 o-30"
 
 
 viewTextQuestion : Question -> TextOptions -> ColorScheme -> Html Msg
