@@ -299,6 +299,26 @@ updateInternalWidgetAnswer newContent question =
         newQuestion
 
 
+setQuestionIsFocused : Zipper Question -> Zipper Question
+setQuestionIsFocused zipper =
+    zipper
+        |> Zipper.mapCurrent (\x -> { x | isFocused = True })
+        |> Zipper.mapBefore (\list -> List.map (\x -> { x | isFocused = False }) list)
+        |> Zipper.mapAfter (\list -> List.map (\x -> { x | isFocused = False }) list)
+
+
+setQuestionIsFocused2 : Model -> Model
+setQuestionIsFocused2 model =
+    let
+        newZipper =
+            model.questionnaire.questions
+                |> Zipper.mapCurrent (\x -> { x | isFocused = True })
+                |> Zipper.mapBefore (\list -> List.map (\x -> { x | isFocused = False }) list)
+                |> Zipper.mapAfter (\list -> List.map (\x -> { x | isFocused = False }) list)
+    in
+        model |> setQuestionsDeep newZipper
+
+
 focusModelOnId : Int -> Model -> Model
 focusModelOnId questionNumber model =
     let
@@ -307,6 +327,7 @@ focusModelOnId questionNumber model =
                 |> Zipper.first
                 |> Zipper.find (\x -> x.questionNumber == questionNumber)
                 |> Zipper.withDefault emptyQuestion
+                |> setQuestionIsFocused
     in
         model |> setQuestionsDeep newZipper
 
@@ -353,6 +374,7 @@ scrollDirection model direction =
                 |> Zipper.first
                 |> Zipper.find (\x -> x.questionNumber == nextFilteredNumber)
                 |> Zipper.withDefault emptyQuestion
+                |> setQuestionIsFocused
 
         newModel =
             model
@@ -572,6 +594,7 @@ activateForm model =
                 |> setTotalQuestions
                 |> handleFooterButtons
                 |> setHtmlFocusCurrent
+                |> setQuestionIsFocused2
 
         newCmdMsg =
             Dom.focus newModel.currentHtmlFocus |> Task.attempt InputFocusResult
@@ -805,10 +828,17 @@ viewQuestion model question colors =
             viewSubmit model question options colors
 
 
+questionContainerClasses question =
+    if question.isFocused then
+        class "pt6 f3"
+    else
+        class "pt6 f3 o-30"
+
+
 viewTextQuestion : Question -> TextOptions -> ColorScheme -> Html Msg
 viewTextQuestion question options colors =
     div
-        [ class "pt6  f3 "
+        [ questionContainerClasses question
         , id (questionIdString question.questionNumber)
         ]
         [ questionText colors question.questionNumber question.questionText
@@ -838,7 +868,7 @@ viewSelectQuestion : Model -> Question -> SelectOptions -> ColorScheme -> Html M
 viewSelectQuestion model question options colors =
     div []
         [ div
-            [ class "pt6  f3 "
+            [ questionContainerClasses question
             , id (questionIdString question.questionNumber)
             ]
             [ questionText demoData.colorScheme question.questionNumber (parseQuestionText model question.questionText)
@@ -888,7 +918,7 @@ viewDropdownQuestion : Model -> Question -> DropdownOptions -> ColorScheme -> Ht
 viewDropdownQuestion model question options colors =
     div []
         [ div
-            [ class "pt6  f3 "
+            [ questionContainerClasses question
             , id (questionIdString question.questionNumber)
             ]
             [ questionText demoData.colorScheme question.questionNumber (parseQuestionText model question.questionText)
@@ -905,7 +935,7 @@ viewDropdownQuestion model question options colors =
 viewPhotoQuestion : Model -> Question -> PhotoOptions -> ColorScheme -> Html Msg
 viewPhotoQuestion model question options colors =
     div
-        [ class " pt6 f3  "
+        [ questionContainerClasses question
         , id (questionIdString question.questionNumber)
         ]
         [ questionText colors question.questionNumber question.questionText
