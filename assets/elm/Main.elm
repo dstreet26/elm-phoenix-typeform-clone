@@ -1084,7 +1084,7 @@ buttonTypeformTachyons =
 
 buttonBase : String
 buttonBase =
-    "button_reset b br2 pv2 ph3 bn pointer shadow_5"
+    "button-reset b br2 pv2 ph3 bn pointer shadow-5"
 
 
 hoverStyles : ColorScheme -> List (Attribute msg)
