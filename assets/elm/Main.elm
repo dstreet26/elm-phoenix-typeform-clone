@@ -501,7 +501,19 @@ toAnswer question =
             options.internalValue
 
         Widgets.Questionnaire.Select options ->
-            ""
+            let
+                filteredQuestions =
+                    List.filter (\x -> x.isSelected) options.choices
+
+                first =
+                    case List.head filteredQuestions of
+                        Just x ->
+                            x.body
+
+                        Nothing ->
+                            ""
+            in
+                first
 
         Dropdown options ->
             options.inputValue
