@@ -104,7 +104,7 @@ demoSelectQuestion =
     , answer = ""
     , isAnswered = False
     , questionText = "Hi, {{question1answer}}. What's your **gender**?"
-    , dependsOn = []
+    , dependsOn = [ 1 ]
     , isFocused = False
     }
 
@@ -122,7 +122,7 @@ demoDropDownQuestion =
     , answer = ""
     , isAnswered = False
     , questionText = "{{question1answer}} + {{question2answer}}. Pick a country."
-    , dependsOn = []
+    , dependsOn = [ 1, 2 ]
     , isFocused = False
     }
 
