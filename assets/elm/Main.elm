@@ -895,8 +895,13 @@ viewTextQuestion question options colors =
             ]
         , div
             [ class "pt2 ml3" ]
-            [ typeFormButton colors options.buttonText question.questionNumber
-            , buttonAsideText options.pressText colors.colorGray
+            [ if String.length options.internalValue > 0 then
+                div []
+                    [ typeFormButton colors options.buttonText question.questionNumber
+                    , buttonAsideText options.pressText colors.colorGray
+                    ]
+              else
+                div [] []
             ]
         , Html.br []
             []
