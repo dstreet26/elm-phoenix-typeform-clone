@@ -29,9 +29,9 @@ emptyQuestion =
 
 questions : List Question
 questions =
-    [ demoFirstQuestion
-    , demoAnotherFirstQuestion
-    , demoSecondQuestion
+    [ demoTextQuestion
+    , demoAnotherTextQuestion
+    , demoSelectQuestion
     , demoDropDownQuestion
     , demoPhotoQuestion
     , submitQuestion
@@ -47,8 +47,8 @@ demoTopSection =
     }
 
 
-demoFirstQuestion : Question
-demoFirstQuestion =
+demoTextQuestion : Question
+demoTextQuestion =
     { questionNumber = 1
     , questionType =
         Text
@@ -64,8 +64,8 @@ demoFirstQuestion =
     }
 
 
-demoAnotherFirstQuestion : Question
-demoAnotherFirstQuestion =
+demoAnotherTextQuestion : Question
+demoAnotherTextQuestion =
     { questionNumber = 2
     , questionType =
         Text
@@ -81,8 +81,8 @@ demoAnotherFirstQuestion =
     }
 
 
-demoSecondQuestion : Question
-demoSecondQuestion =
+demoSelectQuestion : Question
+demoSelectQuestion =
     { questionNumber = 3
     , questionType =
         Select
