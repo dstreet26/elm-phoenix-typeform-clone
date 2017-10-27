@@ -497,16 +497,22 @@ answerQuestion model =
         answer =
             toAnswer currentQuestion
 
-        newModel =
-            model
-                |> setCurrentAnswer answer
-                |> setCurrentIsAnswered True
-                |> setNumQuestionsAnswered
+        ( newModel, newCmdMsg ) =
+            case answer of
+                "" ->
+                    ( model, Cmd.none )
 
-        ( newModel3, newCmdMsg ) =
-            scrollDirection newModel Down
+                value ->
+                    let
+                        newModel =
+                            model
+                                |> setCurrentAnswer answer
+                                |> setCurrentIsAnswered True
+                                |> setNumQuestionsAnswered
+                    in
+                        scrollDirection newModel Down
     in
-        ( newModel3, newCmdMsg )
+        ( newModel, newCmdMsg )
 
 
 toAnswer : Question -> String
