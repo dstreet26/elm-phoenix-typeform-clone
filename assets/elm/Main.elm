@@ -112,17 +112,16 @@ update msg model =
                     model
                         |> focusModelOnId question.questionNumber
                         |> updateCurrentInternal newContent
+                        |> setHtmlFocusCurrent
             in
-                ( newModel, scrollToCurrent newModel )
+                ( newModel, Cmd.none )
 
         TextQuestionClicked question ->
             let
-                questionnaire =
-                    model.questionnaire
-
                 newModel =
                     model
                         |> focusModelOnId question.questionNumber
+                        |> setHtmlFocusCurrent
             in
                 ( newModel, scrollToCurrent newModel )
 
@@ -503,7 +502,12 @@ getNumQuestionsAnswered model =
         questionsAnswered =
             List.filter
                 (\x ->
-                    x.isAnswered == True
+                    case x.questionType of
+                        Submit options ->
+                            False
+
+                        _ ->
+                            x.isAnswered == True
                 )
                 (Zipper.toList model.questionnaire.questions)
     in
@@ -804,7 +808,7 @@ viewQuestion model question colors =
 viewTextQuestion : Question -> TextOptions -> ColorScheme -> Html Msg
 viewTextQuestion question options colors =
     div
-        [ class "pt6  f3 vh-100"
+        [ class "pt6  f3 "
         , id (questionIdString question.questionNumber)
         ]
         [ questionText colors question.questionNumber question.questionText
@@ -834,7 +838,7 @@ viewSelectQuestion : Model -> Question -> SelectOptions -> ColorScheme -> Html M
 viewSelectQuestion model question options colors =
     div []
         [ div
-            [ class "  f3 vh-100"
+            [ class "pt6  f3 "
             , id (questionIdString question.questionNumber)
             ]
             [ questionText demoData.colorScheme question.questionNumber (parseQuestionText model question.questionText)
@@ -884,7 +888,7 @@ viewDropdownQuestion : Model -> Question -> DropdownOptions -> ColorScheme -> Ht
 viewDropdownQuestion model question options colors =
     div []
         [ div
-            [ class "  f3 vh-100"
+            [ class "pt6  f3 "
             , id (questionIdString question.questionNumber)
             ]
             [ questionText demoData.colorScheme question.questionNumber (parseQuestionText model question.questionText)
@@ -901,7 +905,7 @@ viewDropdownQuestion model question options colors =
 viewPhotoQuestion : Model -> Question -> PhotoOptions -> ColorScheme -> Html Msg
 viewPhotoQuestion model question options colors =
     div
-        [ class " f3  vh-100"
+        [ class " pt6 f3  "
         , id (questionIdString question.questionNumber)
         ]
         [ questionText colors question.questionNumber question.questionText
@@ -1029,7 +1033,7 @@ questionText colors questionNumber body =
 
 viewSubmit : Model -> Question -> SubmitOptions -> ColorScheme -> Html Msg
 viewSubmit model question options colors =
-    div [ class "f3 mt3 pt3 center tc vh-50", id (questionIdString question.questionNumber) ]
+    div [ class "f3  pt6 center tc vh-50", id (questionIdString question.questionNumber) ]
         [ submitButton model.questionnaire.colorScheme options.buttonText
         , buttonAsideText "press ENTER" model.questionnaire.colorScheme.colorGray
         ]
