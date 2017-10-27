@@ -38,6 +38,7 @@ type alias Model =
     , footerButtonUpEnabled : Bool
     , footerButtonDownEnabled : Bool
     , pressedKeys : List Key
+    , currentHtmlFocus : String
     }
 
 
@@ -55,6 +56,7 @@ emptyModel =
     , footerButtonUpEnabled = False
     , footerButtonDownEnabled = False
     , pressedKeys = []
+    , currentHtmlFocus = ""
     }
 
 
@@ -68,10 +70,6 @@ emptyQuestionError1 =
     , dependsOn = []
     , isFocused = False
     }
-
-
-
---Placeholder flags
 
 
 init : Maybe Flags -> ( Model, Cmd Msg )
@@ -89,6 +87,7 @@ type Msg
     | KeyboardMsg Keyboard.Extra.Msg
     | TextQuestionInputChanged Question String
     | TextQuestionClicked Question
+    | LetterClicked Int String
     | FDMsg FD.Msg
     | InputFocusResult (Result Dom.Error ())
 
@@ -109,11 +108,10 @@ update msg model =
                 questionnaire =
                     model.questionnaire
 
-                --If we're not focused on the question that was just changed, we need to change focus
                 newModel =
                     model
                         |> focusModelOnId question.questionNumber
-                        |> updateCurrent newContent
+                        |> updateCurrentInternal newContent
             in
                 ( newModel, scrollToCurrent newModel )
 
@@ -122,12 +120,18 @@ update msg model =
                 questionnaire =
                     model.questionnaire
 
-                --If we're not focused on the question that was just changed, we need to change focus
                 newModel =
                     model
                         |> focusModelOnId question.questionNumber
             in
                 ( newModel, scrollToCurrent newModel )
+
+        LetterClicked id letter ->
+            let
+                newModel =
+                    model |> focusModelOnId id
+            in
+                handleSelectLetter newModel letter
 
         KeyboardMsg keyMsg ->
             let
@@ -137,18 +141,20 @@ update msg model =
                 ( newModel, newCmdMsg ) =
                     case model.isFormActivated of
                         True ->
-                            if List.member Keyboard.Extra.Enter pressedKeys then
+                            if List.member Enter pressedKeys then
                                 handleNavigationEnter model
                             else if (List.member Shift pressedKeys) && (List.member ArrowUp pressedKeys) then
                                 scrollDirection model Up
                             else if (List.member Shift pressedKeys) && (List.member ArrowDown pressedKeys) then
                                 scrollDirection model Down
+                            else if List.any isChar pressedKeys then
+                                handleSelectLetter model (keysToLetter pressedKeys)
                             else
                                 ( model, Cmd.none )
 
                         False ->
                             if List.member Keyboard.Extra.Enter pressedKeys then
-                                ( activateForm model, Dom.focus (getIdToFocusOn model) |> Task.attempt InputFocusResult )
+                                activateForm model
                             else
                                 ( model, Cmd.none )
 
@@ -170,14 +176,7 @@ update msg model =
             scrollDirection model Up
 
         ActivateForm ->
-            let
-                newModel =
-                    activateForm model
-
-                idToFocusOn =
-                    getIdToFocusOn model
-            in
-                ( newModel, Dom.focus idToFocusOn |> Task.attempt InputFocusResult )
+            activateForm model
 
         InputFocusResult result ->
             case result of
@@ -212,13 +211,54 @@ update msg model =
                 ( newModel, newCmdMsg )
 
 
-updateCurrent : String -> Model -> Model
-updateCurrent newContent model =
+isChar : Key -> Bool
+isChar key =
+    case key of
+        CharA ->
+            True
+
+        CharB ->
+            True
+
+        CharC ->
+            True
+
+        _ ->
+            False
+
+
+keysToLetter : List Key -> String
+keysToLetter keys =
+    case List.head keys of
+        Just head ->
+            case head of
+                CharA ->
+                    "A"
+
+                CharB ->
+                    "B"
+
+                CharC ->
+                    "C"
+
+                _ ->
+                    ""
+
+        Nothing ->
+            ""
+
+
+updateCurrentInternal : String -> Model -> Model
+updateCurrentInternal newContent model =
     let
         newZipper =
             Zipper.mapCurrent (updateInternalWidgetAnswer newContent) model.questionnaire.questions
     in
         model |> setQuestionsDeep newZipper
+
+
+
+--mapLetterToChoices
 
 
 updateInternalWidgetAnswer : String -> Question -> Question
@@ -232,6 +272,27 @@ updateInternalWidgetAnswer newContent question =
                             { options | internalValue = newContent }
                     in
                         { question | questionType = Text newOptions }
+
+                Widgets.Questionnaire.Select options ->
+                    let
+                        newChoices =
+                            List.map
+                                (\choice ->
+                                    let
+                                        newChoice =
+                                            if choice.letter == newContent then
+                                                { choice | isSelected = True }
+                                            else
+                                                { choice | isSelected = False }
+                                    in
+                                        newChoice
+                                )
+                                options.choices
+
+                        newOptions =
+                            { options | choices = newChoices }
+                    in
+                        { question | questionType = Widgets.Questionnaire.Select newOptions }
 
                 _ ->
                     question
@@ -257,7 +318,7 @@ getIdToFocusOn model =
         currentQuestion =
             Zipper.current model.questionnaire.questions
     in
-        "input " ++ (toString currentQuestion.questionNumber)
+        inputIdString currentQuestion.questionNumber
 
 
 scrollDirection : Model -> Direction -> ( Model, Cmd Msg )
@@ -298,6 +359,7 @@ scrollDirection model direction =
             model
                 |> setQuestionsDeep newZipper
                 |> handleFooterButtons
+                |> setHtmlFocusCurrent
     in
         ( newModel, scrollToCurrent newModel )
 
@@ -314,7 +376,16 @@ scrollToCurrent model =
         newCmd =
             case question.questionType of
                 Text options ->
-                    Cmd.batch [ scrollTo idToScrollTo, Dom.focus (getIdToFocusOn model) |> Task.attempt InputFocusResult ]
+                    Cmd.batch [ scrollTo idToScrollTo, Dom.focus model.currentHtmlFocus |> Task.attempt InputFocusResult ]
+
+                Widgets.Questionnaire.Select options ->
+                    Cmd.batch [ scrollTo idToScrollTo, Dom.blur model.currentHtmlFocus |> Task.attempt InputFocusResult ]
+
+                Dropdown options ->
+                    Cmd.batch [ scrollTo idToScrollTo, Dom.focus model.currentHtmlFocus |> Task.attempt InputFocusResult ]
+
+                PhotoSelect options ->
+                    Cmd.batch [ scrollTo idToScrollTo, Dom.blur model.currentHtmlFocus |> Task.attempt InputFocusResult ]
 
                 _ ->
                     scrollTo idToScrollTo
@@ -330,6 +401,37 @@ setQuestions newQuestions questionnaire =
 setQuestionsDeep : Zipper Question -> Model -> Model
 setQuestionsDeep newQuestions model =
     { model | questionnaire = model.questionnaire |> setQuestions newQuestions }
+
+
+setHtmlFocus : String -> Model -> Model
+setHtmlFocus string model =
+    { model | currentHtmlFocus = string }
+
+
+setHtmlFocusCurrent : Model -> Model
+setHtmlFocusCurrent model =
+    let
+        currentQuestion =
+            Zipper.current model.questionnaire.questions
+
+        newModel =
+            case currentQuestion.questionType of
+                Text options ->
+                    model |> setHtmlFocus (inputIdString currentQuestion.questionNumber)
+
+                Dropdown options ->
+                    model |> setHtmlFocus (inputIdString currentQuestion.questionNumber)
+
+                Widgets.Questionnaire.Select options ->
+                    model
+
+                PhotoSelect options ->
+                    model
+
+                _ ->
+                    model
+    in
+        newModel
 
 
 setCurrentAnswer : String -> Model -> Model
@@ -353,8 +455,11 @@ setCurrentIsAnswered bool model =
 answerQuestion : Model -> ( Model, Cmd Msg )
 answerQuestion model =
     let
+        currentQuestion =
+            Zipper.current model.questionnaire.questions
+
         answer =
-            toAnswer (Zipper.current model.questionnaire.questions)
+            toAnswer currentQuestion
 
         newModel =
             model
@@ -362,10 +467,10 @@ answerQuestion model =
                 |> setCurrentIsAnswered True
                 |> setNumQuestionsAnswered
 
-        ( newModel2, newCmdMsg ) =
+        ( newModel3, newCmdMsg ) =
             scrollDirection newModel Down
     in
-        ( newModel2, newCmdMsg )
+        ( newModel3, newCmdMsg )
 
 
 toAnswer : Question -> String
@@ -416,17 +521,58 @@ setTotalQuestions model =
     { model | totalQuestions = (List.length (Zipper.toList model.questionnaire.questions) - 1) }
 
 
+getCurrentQuestion : Model -> Question
+getCurrentQuestion model =
+    Zipper.current model.questionnaire.questions
+
+
+handleSelectLetter : Model -> String -> ( Model, Cmd Msg )
+handleSelectLetter model letter =
+    let
+        currentQuestion =
+            getCurrentQuestion model
+
+        ( newModel, newCmdMsg ) =
+            case currentQuestion.questionType of
+                Widgets.Questionnaire.Select options ->
+                    let
+                        newModel =
+                            model |> updateCurrentInternal letter
+                    in
+                        answerQuestion newModel
+
+                PhotoSelect options ->
+                    let
+                        newModel =
+                            model |> updateCurrentInternal letter
+                    in
+                        answerQuestion newModel
+
+                _ ->
+                    ( model, Cmd.none )
+    in
+        ( newModel, newCmdMsg )
+
+
 handleNavigationEnter : Model -> ( Model, Cmd Msg )
 handleNavigationEnter model =
     answerQuestion model
 
 
-activateForm : Model -> Model
+activateForm : Model -> ( Model, Cmd Msg )
 activateForm model =
-    model
-        |> setActivated
-        |> setTotalQuestions
-        |> handleFooterButtons
+    let
+        newModel =
+            model
+                |> setActivated
+                |> setTotalQuestions
+                |> handleFooterButtons
+                |> setHtmlFocusCurrent
+
+        newCmdMsg =
+            Dom.focus newModel.currentHtmlFocus |> Task.attempt InputFocusResult
+    in
+        ( newModel, newCmdMsg )
 
 
 handleFooterButtons : Model -> Model
@@ -509,6 +655,11 @@ calculateProgressbar completed total =
 questionIdString : Int -> String
 questionIdString id =
     "question" ++ toString id
+
+
+inputIdString : Int -> String
+inputIdString id =
+    "input" ++ toString id
 
 
 parseQuestionText : Model -> String -> String
@@ -662,7 +813,7 @@ viewTextQuestion question options colors =
                 [ class "input__field--hoshi"
                 , onClick (TextQuestionClicked question)
                 , onInput (TextQuestionInputChanged question)
-                , id ("input " ++ toString question.questionNumber)
+                , id (inputIdString question.questionNumber)
                 , type_ "text"
                 ]
                 []
@@ -690,25 +841,29 @@ viewSelectQuestion model question options colors =
             , ul
                 [ class "list mw6"
                 , style [ ( "color", colors.colorGray ) ]
+                , id (inputIdString question.questionNumber)
                 ]
-                (listChoices options.choices colors)
+                (listChoices options.choices colors question.questionNumber)
             ]
         ]
 
 
-listChoices : List Choice -> ColorScheme -> List (Html msg)
-listChoices choices colors =
+listChoices : List Choice -> ColorScheme -> Int -> List (Html Msg)
+listChoices choices colors id =
     List.map
         (\choice ->
-            liElement choice.letter choice.body colors.colorSelectBackground colors.colorSelectHover colors.colorSelectLetterBackground
+            liElement choice.letter id choice.body colors.colorSelectBackground colors.colorSelectHover colors.colorSelectLetterBackground
         )
         choices
 
 
-liElement : String -> String -> CSSValue -> CSSValue -> String -> Html msg
-liElement letter body colorBackground colorHover colorLetterBackground =
+liElement : String -> Int -> String -> CSSValue -> CSSValue -> String -> Html Msg
+liElement letter id body colorBackground colorHover colorLetterBackground =
     li
-        (liElementTachyons ++ hover [ ( "backgroundColor", colorBackground, colorHover ) ])
+        (liElementTachyons
+            ++ hover [ ( "backgroundColor", colorBackground, colorHover ) ]
+            ++ [ onClick (LetterClicked id letter) ]
+        )
         [ span
             [ class "ba ph2 pv1 mr2"
             , style [ ( "backgroundColor", colorLetterBackground ) ]
@@ -737,7 +892,7 @@ viewDropdownQuestion model question options colors =
                 [ class "mw7 pl3"
                 , style [ ( "color", colors.colorGray ) ]
                 ]
-                [ FD.view options colors
+                [ FD.view options colors question.questionNumber
                 ]
             ]
         ]

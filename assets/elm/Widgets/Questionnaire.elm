@@ -23,6 +23,7 @@ type QuestionType
 type alias Choice =
     { letter : String
     , body : String
+    , isSelected : Bool
     }
 
 

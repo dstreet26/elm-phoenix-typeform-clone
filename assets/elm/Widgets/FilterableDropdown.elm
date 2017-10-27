@@ -144,8 +144,8 @@ setListVisibility bool model =
     { model | showList = bool }
 
 
-view : Model -> ColorScheme -> Html.Html Msg
-view model colors =
+view : Model -> ColorScheme -> Int -> Html.Html Msg
+view model colors questionNumber =
     div []
         [ div [ class "" ]
             [ div [ class "" ]
@@ -158,6 +158,7 @@ view model colors =
                         , placeholder "Type or select an option"
                         , type_ "text"
                         , value model.inputValue
+                        , id ("input" ++ toString questionNumber)
                         ]
                         []
                     , renderArrow model

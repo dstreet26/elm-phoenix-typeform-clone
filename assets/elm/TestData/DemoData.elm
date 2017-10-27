@@ -87,15 +87,15 @@ demoSecondQuestion =
     , questionType =
         Select
             { choices =
-                [ { letter = "A", body = "Male" }
-                , { letter = "B", body = "Female" }
-                , { letter = "C", body = "Other" }
+                [ { letter = "A", body = "Male", isSelected = False }
+                , { letter = "B", body = "Female", isSelected = False }
+                , { letter = "C", body = "Other", isSelected = False }
                 ]
             }
     , answer = ""
     , isAnswered = False
     , questionText = "Hi, {{question1answer}}. What's your **gender**?"
-    , dependsOn = [ 1 ]
+    , dependsOn = []
     , isFocused = False
     }
 
@@ -113,7 +113,7 @@ demoDropDownQuestion =
     , answer = ""
     , isAnswered = False
     , questionText = "{{question1answer}} + {{question2answer}}. Pick a country."
-    , dependsOn = [ 1, 2 ]
+    , dependsOn = []
     , isFocused = False
     }
 
@@ -147,7 +147,7 @@ demoPhotoQuestion =
     , answer = ""
     , isAnswered = False
     , questionText = "Which of these scenes makes you feel happiest?"
-    , dependsOn = [ 1, 2 ]
+    , dependsOn = []
     , isFocused = False
     }
 
