@@ -30,7 +30,7 @@ exports.config = {
       onlyChanged: true
     },
     elmBrunch: {
-      mainModules: ['elm/Main.elm', 'elm/Builder.elm'],
+      mainModules: ['elm/Main.elm'],
       outputFolder: '../assets/compiled_elm',
       makeParameters: ['--debug']
     }
