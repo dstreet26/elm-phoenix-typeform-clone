@@ -982,7 +982,7 @@ viewPhotoQuestion model question options colors =
             [ div [ class "cf" ]
                 (List.map
                     (\photo ->
-                        viewSinglePhotoSelect photo
+                        viewSinglePhotoSelect photo question.questionNumber
                     )
                     options.choices
                 )
@@ -990,9 +990,9 @@ viewPhotoQuestion model question options colors =
         ]
 
 
-viewSinglePhotoSelect : Photo -> Html Msg
-viewSinglePhotoSelect photo =
-    div [ class "fl mw5 ba br2 b--black-40 pa2 ma2 " ]
+viewSinglePhotoSelect : Photo -> Int -> Html Msg
+viewSinglePhotoSelect photo id =
+    div [ class "fl mw5 ba br2 b--black-40 pa2 ma2 ", onClick (LetterClicked id photo.letter) ]
         [ img [ alt "", class "", src photo.url ]
             []
         , div [ class "tc pv3 f5" ]
@@ -1004,9 +1004,9 @@ viewSinglePhotoSelect photo =
         ]
 
 
-viewSinglePhotoSelected : Photo -> Html Msg
-viewSinglePhotoSelected photo =
-    div [ class "fl ba br2 b--black-40 pa2 ma2 " ]
+viewSinglePhotoSelected : Photo -> Int -> Html Msg
+viewSinglePhotoSelected photo id =
+    div [ class "fl ba br2 b--black-40 pa2 ma2 ", onClick (LetterClicked id photo.letter) ]
         [ img [ alt "", class "", src photo.url ]
             []
         , div [ class "tc pv3 f5" ]
