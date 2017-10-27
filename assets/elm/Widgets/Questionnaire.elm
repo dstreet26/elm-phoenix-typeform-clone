@@ -51,6 +51,7 @@ type alias Photo =
     { name : String
     , url : String
     , letter : String
+    , isSelected : Bool
     }
 
 

@@ -87,9 +87,18 @@ demoSelectQuestion =
     , questionType =
         Select
             { choices =
-                [ { letter = "A", body = "Male", isSelected = False }
-                , { letter = "B", body = "Female", isSelected = False }
-                , { letter = "C", body = "Other", isSelected = False }
+                [ { letter = "A"
+                  , body = "Male"
+                  , isSelected = False
+                  }
+                , { letter = "B"
+                  , body = "Female"
+                  , isSelected = False
+                  }
+                , { letter = "C"
+                  , body = "Other"
+                  , isSelected = False
+                  }
                 ]
             }
     , answer = ""
@@ -123,18 +132,22 @@ demoPhotos =
     [ { name = "City"
       , url = "images/city.jpg"
       , letter = "A"
+      , isSelected = False
       }
     , { name = "Countryside"
       , url = "images/countryside.jpg"
       , letter = "B"
+      , isSelected = False
       }
     , { name = "Mountain"
       , url = "images/mountain.jpg"
       , letter = "C"
+      , isSelected = False
       }
     , { name = "Beach"
       , url = "images/beach.jpg"
       , letter = "D"
+      , isSelected = False
       }
     ]
 

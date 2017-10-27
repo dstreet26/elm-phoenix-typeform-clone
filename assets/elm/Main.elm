@@ -222,6 +222,9 @@ isChar key =
         CharC ->
             True
 
+        CharD ->
+            True
+
         _ ->
             False
 
@@ -239,6 +242,9 @@ keysToLetter keys =
 
                 CharC ->
                     "C"
+
+                CharD ->
+                    "D"
 
                 _ ->
                     ""
@@ -292,6 +298,27 @@ updateInternalWidgetAnswer newContent question =
                             { options | choices = newChoices }
                     in
                         { question | questionType = Widgets.Questionnaire.Select newOptions }
+
+                PhotoSelect options ->
+                    let
+                        newChoices =
+                            List.map
+                                (\choice ->
+                                    let
+                                        newChoice =
+                                            if choice.letter == newContent then
+                                                { choice | isSelected = True }
+                                            else
+                                                { choice | isSelected = False }
+                                    in
+                                        newChoice
+                                )
+                                options.choices
+
+                        newOptions =
+                            { options | choices = newChoices }
+                    in
+                        { question | questionType = PhotoSelect newOptions }
 
                 _ ->
                     question
@@ -519,7 +546,19 @@ toAnswer question =
             options.inputValue
 
         PhotoSelect options ->
-            ""
+            let
+                filteredQuestions =
+                    List.filter (\x -> x.isSelected) options.choices
+
+                first =
+                    case List.head filteredQuestions of
+                        Just x ->
+                            x.name
+
+                        Nothing ->
+                            ""
+            in
+                first
 
         Submit options ->
             ""
