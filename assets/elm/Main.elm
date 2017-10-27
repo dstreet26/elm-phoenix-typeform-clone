@@ -10,13 +10,14 @@ import List.Zipper as Zipper exposing (..)
 import Dom exposing (..)
 import Task exposing (..)
 import Debug exposing (log)
-import Keyboard.Extra exposing (Key(..))
+import Keyboard.Extra exposing (Key(..), toCode)
 import Json.Decode as JD
 import Widgets.FilterableDropdown as FD
 import Colors exposing (ColorScheme)
 import Widgets.Questionnaire exposing (..)
 import TestData.DemoData exposing (demoData, emptyQuestion)
 import Regex exposing (..)
+import Char exposing (isUpper, isLower, fromCode)
 
 
 main : Program (Maybe Flags) Model Msg
@@ -212,42 +213,21 @@ update msg model =
 
 isChar : Key -> Bool
 isChar key =
-    case key of
-        CharA ->
-            True
-
-        CharB ->
-            True
-
-        CharC ->
-            True
-
-        CharD ->
-            True
-
-        _ ->
-            False
+    let
+        char =
+            Char.fromCode (toCode key)
+    in
+        Char.isLower char || Char.isUpper char
 
 
 keysToLetter : List Key -> String
 keysToLetter keys =
     case List.head keys of
         Just head ->
-            case head of
-                CharA ->
-                    "A"
-
-                CharB ->
-                    "B"
-
-                CharC ->
-                    "C"
-
-                CharD ->
-                    "D"
-
-                _ ->
-                    ""
+            head
+                |> toCode
+                |> fromCode
+                |> String.fromChar
 
         Nothing ->
             ""
