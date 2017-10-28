@@ -802,8 +802,8 @@ demo : Model -> Html Msg
 demo model =
     div
         [ style
-            [ ( "color", model.questionnaire.colorScheme.colorMain )
-            , ( "backgroundColor", model.questionnaire.colorScheme.colorBackground )
+            [ ( "color", model.questionnaire.colorScheme.mainText )
+            , ( "backgroundColor", model.questionnaire.colorScheme.background )
             ]
         ]
         [ if model.isFormActivated then
@@ -829,7 +829,7 @@ viewTopSection options colors =
         , p [] [ text options.headerText ]
         , div []
             [ topSectionButton colors options.buttonText
-            , buttonAsideText options.pressText colors.colorGray
+            , buttonAsideText options.pressText colors.secondaryText
             ]
         ]
 
@@ -880,6 +880,7 @@ viewTextQuestion question options colors =
         , div [ class "ml3", class "input--hoshi" ]
             [ input
                 [ class "input__field--hoshi"
+                , style [ ( "color", colors.secondaryText ) ]
                 , onClick (TextQuestionClicked question)
                 , onInput (TextQuestionInputChanged question)
                 , id (inputIdString question.questionNumber)
@@ -894,7 +895,7 @@ viewTextQuestion question options colors =
             [ if String.length options.internalValue > 0 then
                 div []
                     [ viewTextButton colors options.buttonText question.questionNumber
-                    , buttonAsideText options.pressText colors.colorGray
+                    , buttonAsideText options.pressText colors.secondaryText
                     ]
               else
                 div [] []
@@ -914,7 +915,7 @@ viewSelectQuestion model question options colors =
             [ questionText demoData.colorScheme question.questionNumber (parseQuestionText model question.questionText)
             , ul
                 [ class "list mw6"
-                , style [ ( "color", colors.colorGray ) ]
+                , style [ ( "color", colors.secondaryText ) ]
                 , id (inputIdString question.questionNumber)
                 ]
                 (viewSelectChoices options.choices colors question.questionNumber)
@@ -936,11 +937,13 @@ viewSelectChoice choice id colors =
     if choice.isSelected then
         li
             ([ class "ba pa3 br2 mv3 pointer", onClick (LetterClicked id choice.letter) ]
-                ++ hover_ [ ( "border-color", "black" ) ] [ ( "backgroundColor", colors.colorSelectBackground, colors.colorSelectHover ) ]
+                ++ hover_
+                    []
+                    [ ( "backgroundColor", colors.selectBackground, colors.selectHover ) ]
             )
             [ span
                 [ class "ba ph2 pv1 mr2"
-                , style [ ( "backgroundColor", colors.colorGray ), ( "color", colors.colorBackground ) ]
+                , style [ ( "backgroundColor", colors.secondaryText ), ( "color", colors.background ) ]
                 ]
                 [ text choice.letter ]
             , span []
@@ -950,12 +953,12 @@ viewSelectChoice choice id colors =
             ]
     else
         li
-            ([ class "ba pa3 br2 b--black-40 mv3 pointer", onClick (LetterClicked id choice.letter) ]
-                ++ hover_ [] [ ( "backgroundColor", colors.colorSelectBackground, colors.colorSelectHover ) ]
+            ([ class "ba pa3 br2 mv3 pointer", onClick (LetterClicked id choice.letter) ]
+                ++ hover_ [] [ ( "backgroundColor", colors.selectBackground, colors.selectHover ) ]
             )
             [ span
                 [ class "ba ph2 pv1 mr2"
-                , style [ ( "backgroundColor", colors.colorSelectLetterBackground ) ]
+                , style [ ( "backgroundColor", colors.selectLetterBackground ) ]
                 ]
                 [ text choice.letter ]
             , span []
@@ -973,7 +976,7 @@ viewDropdownQuestion model question options colors =
             [ questionText demoData.colorScheme question.questionNumber (parseQuestionText model question.questionText)
             , div
                 [ class "mw7 pl3"
-                , style [ ( "color", colors.colorGray ) ]
+                , style [ ( "color", colors.secondaryText ) ]
                 ]
                 [ FD.view options colors question.questionNumber
                 ]
@@ -989,7 +992,7 @@ viewPhotoQuestion model question options colors =
         ]
         [ questionText colors question.questionNumber question.questionText
         , div [ class "" ]
-            [ div [ class "cf", style [ ( "color", colors.colorGray ) ] ]
+            [ div [ class "cf", style [ ( "color", colors.secondaryText ) ] ]
                 (List.map
                     (\photo ->
                         viewSinglePhotoSelect photo question.questionNumber colors
@@ -1004,15 +1007,15 @@ viewSinglePhotoSelect : Photo -> Int -> ColorScheme -> Html Msg
 viewSinglePhotoSelect photo id colors =
     if photo.isSelected then
         div
-            ([ class "fl mw5 ba br2 b--black-40 pa2 ma2 ", onClick (LetterClicked id photo.letter) ]
-                ++ hover_ [ ( "border-color", "black" ) ] [ ( "backgroundColor", colors.colorSelectBackground, colors.colorSelectHover ) ]
+            ([ class "fl mw5 ba br2 pa2 ma2 ", onClick (LetterClicked id photo.letter) ]
+                ++ hover_ [] [ ( "backgroundColor", colors.selectBackground, colors.selectHover ) ]
             )
             [ img [ alt "", class "", src photo.url ]
                 []
             , div [ class "tc pv3 f5" ]
                 [ span
                     [ class "ba ph2 pv1 mr2 br2"
-                    , style [ ( "backgroundColor", colors.colorGray ), ( "color", colors.colorBackground ) ]
+                    , style [ ( "backgroundColor", colors.secondaryText ), ( "color", colors.background ) ]
                     ]
                     [ text photo.letter ]
                 , span []
@@ -1022,14 +1025,14 @@ viewSinglePhotoSelect photo id colors =
     else
         div
             ([ class "fl mw5 ba br2 pa2 ma2 ", onClick (LetterClicked id photo.letter) ]
-                ++ hover_ [] [ ( "backgroundColor", colors.colorSelectBackground, colors.colorSelectHover ) ]
+                ++ hover_ [] [ ( "backgroundColor", colors.selectBackground, colors.selectHover ) ]
             )
             [ img [ alt "", class "", src photo.url ]
                 []
             , div [ class "tc pv3 f5" ]
                 [ span
                     [ class "ba ph2 pv1 mr2 br2"
-                    , style [ ( "backgroundColor", colors.colorSelectLetterBackground ) ]
+                    , style [ ( "backgroundColor", colors.selectLetterBackground ) ]
                     ]
                     [ text photo.letter ]
                 , span []
@@ -1098,8 +1101,8 @@ viewFooterButton colors isUp isEnabled action =
             ([ class "fr mh1" ]
                 ++ buttonClasses
                 ++ [ style
-                        [ ( "color", colors.colorButton )
-                        , ( "backgroundColor", colors.colorButtonHover )
+                        [ ( "color", colors.buttonText )
+                        , ( "backgroundColor", colors.buttonHover )
                         ]
                    , disabled True
                    ]
@@ -1137,16 +1140,16 @@ buttonBase =
 hoverStyles : ColorScheme -> List (Attribute msg)
 hoverStyles colorScheme =
     hover_
-        [ ( "color", colorScheme.colorButton )
+        [ ( "color", colorScheme.buttonText )
         ]
-        [ ( "backgroundColor", colorScheme.colorButtonBackground, colorScheme.colorButtonHover ) ]
+        [ ( "backgroundColor", colorScheme.buttonBackground, colorScheme.buttonHover ) ]
 
 
 questionText : ColorScheme -> Int -> String -> Html msg
 questionText colors questionNumber body =
     div [ class "" ]
         [ span [ class "pr2 fl" ]
-            [ span [ style [ ( "color", colors.colorGray ) ] ]
+            [ span [ style [ ( "color", colors.secondaryText ) ] ]
                 [ span [ class "pr1" ]
                     [ text (toString questionNumber) ]
                 , span [ class "fa fa-arrow-right" ]
@@ -1162,7 +1165,7 @@ viewSubmit : Model -> Question -> SubmitOptions -> ColorScheme -> Html Msg
 viewSubmit model question options colors =
     div [ class "f3  pt6 center tc vh-50", id (questionIdString question.questionNumber) ]
         [ submitButton model.questionnaire.colorScheme options.buttonText
-        , buttonAsideText "press ENTER" model.questionnaire.colorScheme.colorGray
+        , buttonAsideText "press ENTER" model.questionnaire.colorScheme.secondaryText
         ]
 
 
@@ -1171,8 +1174,8 @@ viewFooter model =
     div
         [ class "fixed left-0 right-0 bottom-0 ph6-l ph2 pv3 fl w-100 bt  "
         , style
-            [ ( "backgroundColor", model.questionnaire.colorScheme.colorBackground )
-            , ( "color", model.questionnaire.colorScheme.colorFooter )
+            [ ( "backgroundColor", model.questionnaire.colorScheme.background )
+            , ( "color", model.questionnaire.colorScheme.footerBackground )
             ]
         ]
         [ div [ class "fl w-50" ]

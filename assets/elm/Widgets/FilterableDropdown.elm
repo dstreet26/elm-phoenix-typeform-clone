@@ -6,6 +6,7 @@ import Html.Attributes exposing (..)
 import List.Zipper as Zipper exposing (..)
 import Json.Decode as JD
 import Colors exposing (ColorScheme)
+import DynamicStyle exposing (..)
 
 
 type Msg
@@ -149,7 +150,7 @@ view model colors questionNumber =
     div []
         [ div [ class "" ]
             [ div [ class "" ]
-                [ div [ class " bb" ]
+                [ div [ class " bb", style [ ( "color", colors.secondaryText ) ] ]
                     [ input
                         [ onKeyDown KeyDown
                         , onClick InputClicked
@@ -164,7 +165,7 @@ view model colors questionNumber =
                     , renderArrow model
                     ]
                 , if model.showList then
-                    theList model
+                    theList model colors
                   else
                     div [] []
                 ]
@@ -181,21 +182,27 @@ renderArrow { showList } =
             []
 
 
-theList { filteredChoicesZipped } =
+theList model colors =
     div [ class "absolute nano  z-2 w-30" ]
         [ ul [ class "list pl0 f3  overflow-auto   vh-50 " ]
-            (List.map (\choice -> viewLiNormal choice) (Zipper.before filteredChoicesZipped)
-                ++ [ viewLiHighlighted (Zipper.current filteredChoicesZipped) ]
-                ++ List.map (\choice -> viewLiNormal choice) (Zipper.after filteredChoicesZipped)
+            (List.map (\choice -> viewLiNormal choice colors) (Zipper.before model.filteredChoicesZipped)
+                ++ [ viewLiHighlighted (Zipper.current model.filteredChoicesZipped) colors ]
+                ++ List.map (\choice -> viewLiNormal choice colors) (Zipper.after model.filteredChoicesZipped)
             )
         ]
 
 
-viewLiNormal choice =
-    li [ onClick (SelectChoice choice), class " ba bw1 b--black-20 br2 mv2 ph2 pv2 pointer bg-white-50 hover-bg-silver" ]
+viewLiNormal choice colors =
+    li
+        ([ onClick (SelectChoice choice), class " ba   br2 mv2 ph2 pv2 pointer " ]
+            ++ hover_ [ ( "backgroundColor", colors.selectBackground ) ] [ ( "backgroundColor", colors.selectBackground, colors.selectHover ) ]
+        )
         [ text choice ]
 
 
-viewLiHighlighted choice =
-    li [ onClick (SelectChoice choice), class " ba bw1 b--black-20 br2 mv2 ph2 pv2 pointer bg-silver hover-bg-silver" ]
+viewLiHighlighted choice colors =
+    li
+        ([ onClick (SelectChoice choice), class " ba   br2 mv2 ph2 pv2 pointer " ]
+            ++ hover_ [ ( "backgroundColor", colors.selectHover ) ] []
+        )
         [ text choice ]

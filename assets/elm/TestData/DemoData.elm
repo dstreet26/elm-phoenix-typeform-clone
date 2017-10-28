@@ -2,7 +2,11 @@ module TestData.DemoData exposing (..)
 
 import Widgets.Questionnaire exposing (..)
 import TestData.Countries exposing (countries)
-import TestData.ColorSchemes exposing (lightBlue, hornet)
+
+
+--import TestData.ColorSchemes exposing (lightBlue, hornet, pinky)
+
+import TestData.ColorSchemes exposing (lightBlue, pinky)
 import List.Zipper as Zipper exposing (..)
 
 

@@ -10,16 +10,14 @@ module Colors exposing (ColorScheme)
 
 
 type alias ColorScheme =
-    { colorMain : String
-    , colorBackground : String
-    , colorText : String
-    , colorButton : String
-    , colorButtonBackground : String
-    , colorButtonHover : String
-    , colorGray : String
-    , colorSelectBackground : String
-    , colorSelectHover : String
-    , colorSelectLetterBackground : String
-    , colorFooterBackground : String
-    , colorFooter : String
+    { mainText : String
+    , background : String
+    , buttonText : String
+    , buttonBackground : String
+    , buttonHover : String
+    , secondaryText : String
+    , selectBackground : String
+    , selectHover : String
+    , selectLetterBackground : String
+    , footerBackground : String
     }
