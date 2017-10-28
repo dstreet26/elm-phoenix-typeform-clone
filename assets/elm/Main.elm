@@ -834,16 +834,6 @@ viewTopSection options colors =
         ]
 
 
-topSectionButton : ColorScheme -> String -> Html Msg
-topSectionButton colors buttonText =
-    button
-        ([ onClick ActivateForm ]
-            ++ buttonTopTachyons
-            ++ hoverStyles colors
-        )
-        [ span [] [ text buttonText ] ]
-
-
 viewQuestions : Model -> Zipper Question -> ColorScheme -> List (Html Msg)
 viewQuestions model questions colors =
     List.map
@@ -903,7 +893,7 @@ viewTextQuestion question options colors =
             [ class "pt2 ml3" ]
             [ if String.length options.internalValue > 0 then
                 div []
-                    [ typeFormButton colors options.buttonText question.questionNumber
+                    [ viewTextButton colors options.buttonText question.questionNumber
                     , buttonAsideText options.pressText colors.colorGray
                     ]
               else
@@ -927,41 +917,50 @@ viewSelectQuestion model question options colors =
                 , style [ ( "color", colors.colorGray ) ]
                 , id (inputIdString question.questionNumber)
                 ]
-                (listChoices options.choices colors question.questionNumber)
+                (viewSelectChoices options.choices colors question.questionNumber)
             ]
         ]
 
 
-listChoices : List Choice -> ColorScheme -> Int -> List (Html Msg)
-listChoices choices colors id =
+viewSelectChoices : List Choice -> ColorScheme -> Int -> List (Html Msg)
+viewSelectChoices choices colors id =
     List.map
         (\choice ->
-            liElement choice.letter id choice.body colors.colorSelectBackground colors.colorSelectHover colors.colorSelectLetterBackground
+            viewSelectChoice choice id colors
         )
         choices
 
 
-liElement : String -> Int -> String -> CSSValue -> CSSValue -> String -> Html Msg
-liElement letter id body colorBackground colorHover colorLetterBackground =
-    li
-        (liElementTachyons
-            ++ hover [ ( "backgroundColor", colorBackground, colorHover ) ]
-            ++ [ onClick (LetterClicked id letter) ]
-        )
-        [ span
-            [ class "ba ph2 pv1 mr2"
-            , style [ ( "backgroundColor", colorLetterBackground ) ]
+viewSelectChoice : Choice -> Int -> ColorScheme -> Html Msg
+viewSelectChoice choice id colors =
+    if choice.isSelected then
+        li
+            ([ class "ba pa3 br2 mv3 pointer", onClick (LetterClicked id choice.letter) ]
+                ++ hover_ [ ( "border-color", "black" ) ] [ ( "backgroundColor", colors.colorSelectBackground, colors.colorSelectHover ) ]
+            )
+            [ span
+                [ class "ba ph2 pv1 mr2"
+                , style [ ( "backgroundColor", colors.colorGray ), ( "color", colors.colorBackground ) ]
+                ]
+                [ text choice.letter ]
+            , span []
+                [ text choice.body ]
+            , span [ class "fr fa fa-check" ]
+                []
             ]
-            [ text letter ]
-        , span []
-            [ text body ]
-        ]
-
-
-liElementTachyons : List (Attribute msg)
-liElementTachyons =
-    [ class "ba pa3 br2 b--black-40 mv3 pointer"
-    ]
+    else
+        li
+            ([ class "ba pa3 br2 b--black-40 mv3 pointer", onClick (LetterClicked id choice.letter) ]
+                ++ hover_ [] [ ( "backgroundColor", colors.colorSelectBackground, colors.colorSelectHover ) ]
+            )
+            [ span
+                [ class "ba ph2 pv1 mr2"
+                , style [ ( "backgroundColor", colors.colorSelectLetterBackground ) ]
+                ]
+                [ text choice.letter ]
+            , span []
+                [ text choice.body ]
+            ]
 
 
 viewDropdownQuestion : Model -> Question -> DropdownOptions -> ColorScheme -> Html FD.Msg
@@ -990,10 +989,10 @@ viewPhotoQuestion model question options colors =
         ]
         [ questionText colors question.questionNumber question.questionText
         , div [ class "" ]
-            [ div [ class "cf" ]
+            [ div [ class "cf", style [ ( "color", colors.colorGray ) ] ]
                 (List.map
                     (\photo ->
-                        viewSinglePhotoSelect photo question.questionNumber
+                        viewSinglePhotoSelect photo question.questionNumber colors
                     )
                     options.choices
                 )
@@ -1001,46 +1000,42 @@ viewPhotoQuestion model question options colors =
         ]
 
 
-viewSinglePhotoSelect : Photo -> Int -> Html Msg
-viewSinglePhotoSelect photo id =
-    div [ class "fl mw5 ba br2 b--black-40 pa2 ma2 ", onClick (LetterClicked id photo.letter) ]
-        [ img [ alt "", class "", src photo.url ]
-            []
-        , div [ class "tc pv3 f5" ]
-            [ span [ class "ba ph2 pv1 mr2 colorSelectLetterBackground br2" ]
-                [ text photo.letter ]
-            , span []
-                [ text photo.name ]
+viewSinglePhotoSelect : Photo -> Int -> ColorScheme -> Html Msg
+viewSinglePhotoSelect photo id colors =
+    if photo.isSelected then
+        div
+            ([ class "fl mw5 ba br2 b--black-40 pa2 ma2 ", onClick (LetterClicked id photo.letter) ]
+                ++ hover_ [ ( "border-color", "black" ) ] [ ( "backgroundColor", colors.colorSelectBackground, colors.colorSelectHover ) ]
+            )
+            [ img [ alt "", class "", src photo.url ]
+                []
+            , div [ class "tc pv3 f5" ]
+                [ span
+                    [ class "ba ph2 pv1 mr2 br2"
+                    , style [ ( "backgroundColor", colors.colorGray ), ( "color", colors.colorBackground ) ]
+                    ]
+                    [ text photo.letter ]
+                , span []
+                    [ text photo.name ]
+                ]
             ]
-        ]
-
-
-viewSinglePhotoSelected : Photo -> Int -> Html Msg
-viewSinglePhotoSelected photo id =
-    div [ class "fl ba br2 b--black-40 pa2 ma2 ", onClick (LetterClicked id photo.letter) ]
-        [ img [ alt "", class "", src photo.url ]
-            []
-        , div [ class "tc pv3 f5" ]
-            [ span [ class "ba ph2 pv1 mr2 colorSelectLetterBackground br2" ]
-                [ text photo.letter ]
-            , span []
-                [ text photo.name ]
+    else
+        div
+            ([ class "fl mw5 ba br2 pa2 ma2 ", onClick (LetterClicked id photo.letter) ]
+                ++ hover_ [] [ ( "backgroundColor", colors.colorSelectBackground, colors.colorSelectHover ) ]
+            )
+            [ img [ alt "", class "", src photo.url ]
+                []
+            , div [ class "tc pv3 f5" ]
+                [ span
+                    [ class "ba ph2 pv1 mr2 br2"
+                    , style [ ( "backgroundColor", colors.colorSelectLetterBackground ) ]
+                    ]
+                    [ text photo.letter ]
+                , span []
+                    [ text photo.name ]
+                ]
             ]
-        ]
-
-
-typeFormButton : ColorScheme -> String -> Int -> Html Msg
-typeFormButton colors buttonText questionNumber =
-    button
-        ([ onClick (AnswerQuestionWithId questionNumber) ]
-            ++ buttonTypeformTachyons
-            ++ hoverStyles colors
-        )
-        [ span []
-            [ text buttonText ]
-        , span [ class "fa fa-check" ]
-            []
-        ]
 
 
 buttonAsideText : String -> String -> Html msg
@@ -1052,14 +1047,66 @@ buttonAsideText asideText asideColor =
         [ text asideText ]
 
 
+topSectionButton : ColorScheme -> String -> Html Msg
+topSectionButton colors buttonText =
+    button
+        ([ onClick ActivateForm ]
+            ++ buttonTopClasses
+            ++ hoverStyles colors
+        )
+        [ span [] [ text buttonText ] ]
+
+
+viewTextButton : ColorScheme -> String -> Int -> Html Msg
+viewTextButton colors buttonText questionNumber =
+    button
+        ([ onClick (AnswerQuestionWithId questionNumber) ]
+            ++ buttonClasses
+            ++ hoverStyles colors
+        )
+        [ span []
+            [ text buttonText ]
+        , span [ class "fa fa-check" ]
+            []
+        ]
+
+
 submitButton : ColorScheme -> String -> Html Msg
 submitButton colors buttonText =
     button
         ([ onClick NoOp ]
-            ++ buttonTopTachyons
+            ++ buttonTopClasses
             ++ hoverStyles colors
         )
         [ span [] [ text buttonText ] ]
+
+
+viewFooterButton : ColorScheme -> Bool -> Bool -> msg -> Html msg
+viewFooterButton colors isUp isEnabled action =
+    if isEnabled then
+        button
+            ([ onClick action, class "fr mh1" ]
+                ++ buttonClasses
+                ++ hoverStyles colors
+                ++ [ disabled False ]
+            )
+            [ span [ class (chevronUpOrDown isUp) ]
+                []
+            ]
+    else
+        button
+            ([ class "fr mh1" ]
+                ++ buttonClasses
+                ++ [ style
+                        [ ( "color", colors.colorButton )
+                        , ( "backgroundColor", colors.colorButtonHover )
+                        ]
+                   , disabled True
+                   ]
+            )
+            [ span [ class (chevronUpOrDown isUp) ]
+                []
+            ]
 
 
 chevronUpOrDown : Bool -> String
@@ -1070,14 +1117,14 @@ chevronUpOrDown isUp =
         "fa fa-chevron-down"
 
 
-buttonTopTachyons : List (Attribute msg)
-buttonTopTachyons =
+buttonTopClasses : List (Attribute msg)
+buttonTopClasses =
     [ class ("ph4 " ++ buttonBase)
     ]
 
 
-buttonTypeformTachyons : List (Attribute msg)
-buttonTypeformTachyons =
+buttonClasses : List (Attribute msg)
+buttonClasses =
     [ class ("ph3 " ++ buttonBase)
     ]
 
@@ -1131,38 +1178,10 @@ viewFooter model =
         [ div [ class "fl w-50" ]
             (viewFooterProgressBar model.numQuestionsAnswered model.totalQuestions)
         , div [ class "fl w-50 pt3" ]
-            [ typeFormFooterButton model.questionnaire.colorScheme False model.footerButtonDownEnabled FooterNext
-            , typeFormFooterButton model.questionnaire.colorScheme True model.footerButtonUpEnabled FooterPrevious
+            [ viewFooterButton model.questionnaire.colorScheme False model.footerButtonDownEnabled FooterNext
+            , viewFooterButton model.questionnaire.colorScheme True model.footerButtonUpEnabled FooterPrevious
             ]
         ]
-
-
-typeFormFooterButton : ColorScheme -> Bool -> Bool -> msg -> Html msg
-typeFormFooterButton colorScheme isUp isEnabled action =
-    if isEnabled then
-        button
-            ([ onClick action, class "fr mh1" ]
-                ++ buttonTypeformTachyons
-                ++ hoverStyles colorScheme
-                ++ [ disabled False ]
-            )
-            [ span [ class (chevronUpOrDown isUp) ]
-                []
-            ]
-    else
-        button
-            ([ class "fr mh1" ]
-                ++ buttonTypeformTachyons
-                ++ [ style
-                        [ ( "color", colorScheme.colorButton )
-                        , ( "backgroundColor", colorScheme.colorButtonHover )
-                        ]
-                   , disabled True
-                   ]
-            )
-            [ span [ class (chevronUpOrDown isUp) ]
-                []
-            ]
 
 
 viewFooterProgressBar : Int -> Int -> List (Html Msg)
