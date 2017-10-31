@@ -2,11 +2,7 @@ module TestData.DemoData exposing (..)
 
 import Widgets.Questionnaire exposing (..)
 import TestData.Countries exposing (countries)
-
-
---import TestData.ColorSchemes exposing (lightBlue, hornet, pinky)
-
-import TestData.ColorSchemes exposing (lightBlue, pinky)
+import TestData.ColorSchemes exposing (..)
 import List.Zipper as Zipper exposing (..)
 
 
@@ -15,7 +11,7 @@ demoData =
     { topSection = demoTopSection
     , questions = (Zipper.fromList questions |> Zipper.withDefault emptyQuestion)
     , name = "hey"
-    , colorScheme = lightBlue
+    , colorScheme = pinky
     }
 
 

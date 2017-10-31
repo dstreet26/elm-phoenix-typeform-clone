@@ -18,23 +18,6 @@ lightBlue =
     }
 
 
-
---hornet : ColorScheme
---hornet =
---    { colorMain = "#114FA0"
---    , colorBackground = "#FED46A"
---    , colorButton = "#444747"
---    , colorButtonBackground = "#e8f5f7"
---    , colorButtonHover = "#b3b7b7"
---    , colorGray = "#C22F27"
---    , colorSelectBackground = "#DFEDEE"
---    , colorSelectHover = "#CCD7D9"
---    , colorSelectLetterBackground = "#C7D2D4"
---    , colorFooterBackground = "#E1EEF0"
---    , colorFooter = "#7C697F"
---    }
-
-
 pinky : ColorScheme
 pinky =
     { mainText = "#FFFFFF"
@@ -47,4 +30,19 @@ pinky =
     , selectHover = "#CD9DC2"
     , selectLetterBackground = "#CFA2C1"
     , footerBackground = "#BB7FBD"
+    }
+
+
+insight : ColorScheme
+insight =
+    { mainText = "#C9A538"
+    , background = "#FAF2DB"
+    , buttonText = "#634E0E"
+    , buttonBackground = "#E4BB3F"
+    , buttonHover = "#EACB6C"
+    , secondaryText = "#7A7A7A"
+    , selectBackground = "#F4EDD7"
+    , selectHover = "#E0DAC7"
+    , selectLetterBackground = "#DBD6C4"
+    , footerBackground = "#F5EDD7"
     }
