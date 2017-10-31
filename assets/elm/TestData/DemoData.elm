@@ -24,6 +24,8 @@ emptyQuestion =
     , questionText = "EMPTY QUESTION"
     , dependsOn = []
     , isFocused = False
+    , isRequired = False
+    , validationResult = Nothing
     }
 
 
@@ -61,6 +63,8 @@ demoTextQuestion =
     , questionText = "**Hello**. What's your name?*"
     , dependsOn = []
     , isFocused = False
+    , isRequired = False
+    , validationResult = Nothing
     }
 
 
@@ -68,7 +72,7 @@ demoAnotherTextQuestion : Question
 demoAnotherTextQuestion =
     { questionNumber = 2
     , questionType =
-        Text
+        Email
             { buttonText = "OK"
             , pressText = "press ENTER"
             , internalValue = ""
@@ -78,6 +82,8 @@ demoAnotherTextQuestion =
     , questionText = "Enter anything, this is a placeholder"
     , dependsOn = []
     , isFocused = False
+    , isRequired = False
+    , validationResult = Nothing
     }
 
 
@@ -106,6 +112,8 @@ demoSelectQuestion =
     , questionText = "Hi, {{question1answer}}. What's your **gender**?"
     , dependsOn = [ 1 ]
     , isFocused = False
+    , isRequired = False
+    , validationResult = Nothing
     }
 
 
@@ -124,6 +132,8 @@ demoDropDownQuestion =
     , questionText = "{{question1answer}} + {{question2answer}}. Pick a country."
     , dependsOn = [ 1, 2 ]
     , isFocused = False
+    , isRequired = False
+    , validationResult = Nothing
     }
 
 
@@ -162,6 +172,8 @@ demoPhotoQuestion =
     , questionText = "Which of these scenes makes you feel happiest?"
     , dependsOn = []
     , isFocused = False
+    , isRequired = False
+    , validationResult = Nothing
     }
 
 
@@ -175,6 +187,8 @@ submitQuestion =
     , questionText = ""
     , dependsOn = []
     , isFocused = False
+    , isRequired = False
+    , validationResult = Nothing
     }
 
 

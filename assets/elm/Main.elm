@@ -82,6 +82,8 @@ emptyQuestionError1 =
     , questionText = "Problem with question dependencies"
     , dependsOn = []
     , isFocused = False
+    , isRequired = False
+    , validationResult = Nothing
     }
 
 
@@ -297,6 +299,13 @@ updateInternalWidgetAnswer newContent question =
                     in
                         { question | questionType = Text newOptions }
 
+                Email options ->
+                    let
+                        newOptions =
+                            { options | internalValue = newContent }
+                    in
+                        { question | questionType = Email newOptions }
+
                 Widgets.Questionnaire.Select options ->
                     let
                         newChoices =
@@ -445,6 +454,9 @@ scrollToCurrent model =
                 Text options ->
                     Cmd.batch [ scrollTo idToScrollTo, Dom.focus model.currentHtmlFocus |> Task.attempt InputFocusResult ]
 
+                Email options ->
+                    Cmd.batch [ scrollTo idToScrollTo, Dom.focus model.currentHtmlFocus |> Task.attempt InputFocusResult ]
+
                 Widgets.Questionnaire.Select options ->
                     Cmd.batch [ scrollTo idToScrollTo, Dom.blur model.currentHtmlFocus |> Task.attempt InputFocusResult ]
 
@@ -484,6 +496,9 @@ setHtmlFocusCurrent model =
         newModel =
             case currentQuestion.questionType of
                 Text options ->
+                    model |> setHtmlFocus (inputIdString currentQuestion.questionNumber)
+
+                Email options ->
                     model |> setHtmlFocus (inputIdString currentQuestion.questionNumber)
 
                 Dropdown options ->
@@ -528,6 +543,8 @@ answerQuestion model =
         answer =
             toAnswer currentQuestion
 
+        --validations =
+        --runValidations model
         ( newModel, newCmdMsg ) =
             case answer of
                 "" ->
@@ -540,16 +557,57 @@ answerQuestion model =
                                 |> setCurrentAnswer answer
                                 |> setCurrentIsAnswered True
                                 |> setNumQuestionsAnswered
+                                |> runValidations
                     in
                         scrollDirection newModel Down
     in
         ( newModel, newCmdMsg )
 
 
+runValidations : Model -> Model
+runValidations model =
+    let
+        newModel =
+            model
+
+        newQuestions =
+            Zipper.mapCurrent validateQuestion model.questionnaire.questions
+    in
+        model |> setQuestionsDeep newQuestions
+
+
+validateQuestion : Question -> Question
+validateQuestion question =
+    let
+        newValidation =
+            if question.isRequired then
+                case question.answer of
+                    "" ->
+                        Just "Required"
+
+                    _ ->
+                        Nothing
+            else
+                case question.questionType of
+                    Email textOptions ->
+                        if Regex.contains (Regex.caseInsensitive (Regex.regex "^\\S+@\\S+\\.\\S+$")) question.answer then
+                            Nothing
+                        else
+                            Just "not an email"
+
+                    _ ->
+                        Nothing
+    in
+        { question | validationResult = newValidation }
+
+
 toAnswer : Question -> String
 toAnswer question =
     case question.questionType of
         Text options ->
+            options.internalValue
+
+        Email options ->
             options.internalValue
 
         Widgets.Questionnaire.Select options ->
@@ -903,15 +961,30 @@ viewQuestions : Model -> Zipper Question -> ColorScheme -> List (Html Msg)
 viewQuestions model questions colors =
     List.map
         (\question ->
-            viewQuestion model question colors
+            case question.validationResult of
+                Nothing ->
+                    div [] [ viewQuestion model question colors ]
+
+                Just validationError ->
+                    div []
+                        [ viewQuestion model question colors
+                        , viewValidation model question colors
+                        ]
         )
         (Zipper.toList questions)
+
+
+viewValidation model question colors =
+    div [] [ text "unvalidated" ]
 
 
 viewQuestion : Model -> Question -> ColorScheme -> Html Msg
 viewQuestion model question colors =
     case question.questionType of
         Text options ->
+            viewTextQuestion question options colors
+
+        Email options ->
             viewTextQuestion question options colors
 
         Widgets.Questionnaire.Select options ->

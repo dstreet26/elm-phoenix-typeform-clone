@@ -14,6 +14,7 @@ type alias TopSection =
 
 type QuestionType
     = Text TextOptions
+    | Email TextOptions
     | Select SelectOptions
     | Dropdown DropdownOptions
     | PhotoSelect PhotoOptions
@@ -73,6 +74,8 @@ type alias Question =
     , answer : String
     , dependsOn : List Int
     , isFocused : Bool
+    , isRequired : Bool
+    , validationResult : Maybe String
     }
 
 
