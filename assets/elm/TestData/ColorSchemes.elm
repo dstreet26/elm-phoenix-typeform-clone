@@ -3,6 +3,15 @@ module TestData.ColorSchemes exposing (..)
 import Colors exposing (ColorScheme)
 
 
+allColors : List ColorScheme
+allColors =
+    [ lightBlue
+    , pinky
+    , insight
+    , gusher
+    ]
+
+
 lightBlue : ColorScheme
 lightBlue =
     { mainText = "#5fb4bf"
@@ -45,4 +54,19 @@ insight =
     , selectHover = "#E0DAC7"
     , selectLetterBackground = "#DBD6C4"
     , footerBackground = "#F5EDD7"
+    }
+
+
+gusher : ColorScheme
+gusher =
+    { mainText = "#FFFFFF"
+    , background = "#C85976"
+    , buttonText = "#808080"
+    , buttonBackground = "#FFFFFF"
+    , buttonHover = "#E6E6E6"
+    , secondaryText = "#F6FFB5"
+    , selectBackground = "#E7FFB2"
+    , selectHover = "#CE7A82"
+    , selectLetterBackground = "#CF8084"
+    , footerBackground = "#BF5570"
     }

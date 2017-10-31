@@ -11,7 +11,7 @@ demoData =
     { topSection = demoTopSection
     , questions = (Zipper.fromList questions |> Zipper.withDefault emptyQuestion)
     , name = "hey"
-    , colorScheme = pinky
+    , colorScheme = lightBlue
     }
 
 

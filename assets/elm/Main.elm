@@ -16,7 +16,7 @@ import Colors exposing (ColorScheme)
 import TestData.DemoData exposing (demoData, emptyQuestion)
 import Widgets.Questionnaire exposing (..)
 import Widgets.FilterableDropdown as FD
-import TestData.ColorSchemes exposing (lightBlue, pinky)
+import TestData.ColorSchemes exposing (allColors)
 
 
 main : Program (Maybe Flags) Model Msg
@@ -44,13 +44,7 @@ type alias Model =
     , footerButtonDownEnabled : Bool
     , pressedKeys : List Key
     , currentHtmlFocus : String
-    , colorSchemes : List ColorSchemeObjects
-    }
-
-
-type alias ColorSchemeObjects =
-    { name : String
-    , colorScheme : ColorScheme
+    , colorSchemes : List ColorScheme
     }
 
 
@@ -69,7 +63,7 @@ emptyModel =
     , footerButtonDownEnabled = False
     , pressedKeys = []
     , currentHtmlFocus = ""
-    , colorSchemes = [ { name = "lightBlue", colorScheme = lightBlue }, { name = "pinky", colorScheme = pinky } ]
+    , colorSchemes = allColors
     }
 
 
@@ -907,15 +901,15 @@ viewColorSchemeButtons : Model -> Html Msg
 viewColorSchemeButtons model =
     div [ class "flex flex-wrap mw6" ]
         (List.map
-            (\object ->
+            (\colorScheme ->
                 div
                     (([ class "pa3 flex-auto ba bw2 grow"
-                      , onClick (ColorSchemeClicked object.colorScheme)
+                      , onClick (ColorSchemeClicked colorScheme)
                       ]
                      )
-                        ++ (hover_ [ ( "backgroundColor", object.colorScheme.background ) ] [])
+                        ++ (hover_ [ ( "backgroundColor", colorScheme.background ) ] [])
                     )
-                    [ text object.name ]
+                    []
             )
             model.colorSchemes
         )
