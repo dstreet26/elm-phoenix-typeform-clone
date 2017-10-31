@@ -7,7 +7,7 @@ import Char exposing (isUpper, isLower, fromCode)
 import Regex exposing (find, HowMany(..))
 import Dom exposing (focus)
 import Task exposing (perform)
-import DynamicStyle exposing (hover, hover_)
+import DynamicStyle exposing (hover_)
 import Markdown exposing (toHtml)
 import Ports.SmoothScroll exposing (scrollTo)
 import Keyboard.Extra exposing (Key(..), toCode)
@@ -16,6 +16,7 @@ import Colors exposing (ColorScheme)
 import TestData.DemoData exposing (demoData, emptyQuestion)
 import Widgets.Questionnaire exposing (..)
 import Widgets.FilterableDropdown as FD
+import TestData.ColorSchemes exposing (lightBlue, pinky)
 
 
 main : Program (Maybe Flags) Model Msg
@@ -29,6 +30,11 @@ type alias Flags =
     }
 
 
+testValidationEmail : String -> ( Bool, String )
+testValidationEmail string =
+    ( False, "that didn't parse as an email." )
+
+
 type alias Model =
     { questionnaire : Questionnaire
     , isFormActivated : Bool
@@ -38,6 +44,13 @@ type alias Model =
     , footerButtonDownEnabled : Bool
     , pressedKeys : List Key
     , currentHtmlFocus : String
+    , colorSchemes : List ColorSchemeObjects
+    }
+
+
+type alias ColorSchemeObjects =
+    { name : String
+    , colorScheme : ColorScheme
     }
 
 
@@ -56,6 +69,7 @@ emptyModel =
     , footerButtonDownEnabled = False
     , pressedKeys = []
     , currentHtmlFocus = ""
+    , colorSchemes = [ { name = "lightBlue", colorScheme = lightBlue }, { name = "pinky", colorScheme = pinky } ]
     }
 
 
@@ -89,6 +103,7 @@ type Msg
     | LetterClicked Int String
     | FDMsg FD.Msg
     | InputFocusResult (Result Dom.Error ())
+    | ColorSchemeClicked ColorScheme
 
 
 type Direction
@@ -101,6 +116,13 @@ update msg model =
     case msg of
         NoOp ->
             ( model, Cmd.none )
+
+        ColorSchemeClicked colorScheme ->
+            let
+                newModel =
+                    model |> setColorScheme colorScheme
+            in
+                ( newModel, Cmd.none )
 
         TextQuestionInputChanged question newContent ->
             let
@@ -248,8 +270,19 @@ updateCurrentInternal newContent model =
         model |> setQuestionsDeep newZipper
 
 
+setColorScheme : ColorScheme -> Model -> Model
+setColorScheme colorScheme model =
+    let
+        currentQuestionniare =
+            model.questionnaire
 
---mapLetterToChoices
+        newQuestionnaire =
+            { currentQuestionniare | colorScheme = colorScheme }
+
+        newModel =
+            { model | questionnaire = newQuestionnaire }
+    in
+        newModel
 
 
 updateInternalWidgetAnswer : String -> Question -> Question
@@ -791,8 +824,43 @@ replacer match questions =
 view : Model -> Html Msg
 view model =
     div [ class "fl w-100 montserrat" ]
-        [ demo model
+        [ viewControlPanel model
+        , demo model
         ]
+
+
+viewControlPanel : Model -> Html Msg
+viewControlPanel model =
+    div [ class "bg-white pa6 bb bw2" ]
+        [ div [ class "fl w-50" ]
+            [ h2 []
+                [ text "Elm Typeform Clone"
+                ]
+            , p [] [ text "Use Shift+Up/Down for keyboard navigation." ]
+            ]
+        , div [ class "fl w-50" ]
+            [ p [] [ text "Color Schemes (click to change)" ]
+            , viewColorSchemeButtons model
+            ]
+        ]
+
+
+viewColorSchemeButtons : Model -> Html Msg
+viewColorSchemeButtons model =
+    div [ class "flex flex-wrap mw6" ]
+        (List.map
+            (\object ->
+                div
+                    (([ class "pa3 flex-auto ba bw2 grow"
+                      , onClick (ColorSchemeClicked object.colorScheme)
+                      ]
+                     )
+                        ++ (hover_ [ ( "backgroundColor", object.colorScheme.background ) ] [])
+                    )
+                    [ text object.name ]
+            )
+            model.colorSchemes
+        )
 
 
 demo : Model -> Html Msg
