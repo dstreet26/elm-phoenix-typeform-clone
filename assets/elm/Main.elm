@@ -793,8 +793,7 @@ replacer match questions =
 view : Model -> Html Msg
 view model =
     div [ class "fl w-100 montserrat" ]
-        [ div [] [ text (toString model.pressedKeys) ]
-        , demo model
+        [ demo model
         ]
 
 
