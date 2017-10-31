@@ -2,22 +2,20 @@ module Main exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (..)
-import DynamicStyle exposing (..)
+import Html.Events exposing (onClick, onInput)
+import Char exposing (isUpper, isLower, fromCode)
+import Regex exposing (find, HowMany(..))
+import Dom exposing (focus)
+import Task exposing (perform)
+import DynamicStyle exposing (hover, hover_)
 import Markdown exposing (toHtml)
 import Ports.SmoothScroll exposing (scrollTo)
-import List.Zipper as Zipper exposing (..)
-import Dom exposing (..)
-import Task exposing (..)
-import Debug exposing (log)
 import Keyboard.Extra exposing (Key(..), toCode)
-import Json.Decode as JD
-import Widgets.FilterableDropdown as FD
+import List.Zipper as Zipper exposing (..)
 import Colors exposing (ColorScheme)
-import Widgets.Questionnaire exposing (..)
 import TestData.DemoData exposing (demoData, emptyQuestion)
-import Regex exposing (..)
-import Char exposing (isUpper, isLower, fromCode)
+import Widgets.Questionnaire exposing (..)
+import Widgets.FilterableDropdown as FD
 
 
 main : Program (Maybe Flags) Model Msg
