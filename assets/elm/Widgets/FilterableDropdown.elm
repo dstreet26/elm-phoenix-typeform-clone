@@ -150,12 +150,13 @@ view model colors questionNumber =
     div []
         [ div [ class "" ]
             [ div [ class "" ]
-                [ div [ class " bb", style [ ( "color", colors.secondaryText ) ] ]
+                [ div [ class " bb" ]
                     [ input
                         [ onKeyDown KeyDown
                         , onClick InputClicked
                         , onInput InputChanged
                         , class "input reset bn  w-90 pv3 f3 bg-transparent on"
+                        , style [ ( "color", colors.secondaryText ) ]
                         , placeholder "Type or select an option"
                         , type_ "text"
                         , value model.inputValue
