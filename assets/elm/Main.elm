@@ -808,7 +808,7 @@ demo model =
         [ if model.isFormActivated then
             div [ class "mh7-l mh2" ]
                 [ div [ class "" ] (viewQuestions model (filterQuestions model.questionnaire.questions |> Zipper.withDefault emptyQuestion) model.questionnaire.colorScheme)
-                , viewFooter model
+                , viewFooter model model.questionnaire.colorScheme
                 ]
           else
             viewTopSection model.questionnaire.topSection model.questionnaire.colorScheme
@@ -1168,17 +1168,17 @@ viewSubmit model question options colors =
         ]
 
 
-viewFooter : Model -> Html Msg
-viewFooter model =
+viewFooter : Model -> ColorScheme -> Html Msg
+viewFooter model colors =
     div
         [ class "fixed left-0 right-0 bottom-0 ph6-l ph2 pv3 fl w-100 bt  "
         , style
             [ ( "backgroundColor", model.questionnaire.colorScheme.background )
-            , ( "color", model.questionnaire.colorScheme.footerBackground )
+            , ( "color", model.questionnaire.colorScheme.secondaryText )
             ]
         ]
         [ div [ class "fl w-50" ]
-            (viewFooterProgressBar model.numQuestionsAnswered model.totalQuestions)
+            (viewFooterProgressBar model colors)
         , div [ class "fl w-50 pt3" ]
             [ viewFooterButton model.questionnaire.colorScheme False model.footerButtonDownEnabled FooterNext
             , viewFooterButton model.questionnaire.colorScheme True model.footerButtonUpEnabled FooterPrevious
@@ -1186,13 +1186,17 @@ viewFooter model =
         ]
 
 
-viewFooterProgressBar : Int -> Int -> List (Html Msg)
-viewFooterProgressBar completed total =
-    [ p [] [ text (toString completed ++ " out of " ++ toString total ++ " questions completed") ]
-    , div [ class "bg-moon-gray br-pill h1 overflow-y-hidden" ]
+viewFooterProgressBar : Model -> ColorScheme -> List (Html Msg)
+viewFooterProgressBar model colors =
+    [ p [] [ text (toString model.numQuestionsAnswered ++ " out of " ++ toString model.totalQuestions ++ " questions completed") ]
+    , div [ class "br-pill h1 overflow-y-hidden", style [ ( "backgroundColor", colors.selectLetterBackground ) ] ]
         [ div
-            [ class "bg-blue br-pill h1 shadow-1"
-            , style [ ( "width", calculateProgressbar completed total ) ]
+            [ class "br-pill h1"
+            , style
+                [ ( "width", calculateProgressbar model.numQuestionsAnswered model.totalQuestions )
+                , ( "backgroundColor", model.questionnaire.colorScheme.secondaryText )
+                , ( "color", model.questionnaire.colorScheme.secondaryText )
+                ]
             ]
             []
         ]
