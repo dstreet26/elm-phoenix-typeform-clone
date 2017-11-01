@@ -8,6 +8,8 @@ The goal of this project is to learn how to build something non-trivial with Elm
 
 ## Demo:
 
+(Heroku demo link coming soon!)
+
 ## TODO:
 
 - Backend (Users, Database, etc.)
