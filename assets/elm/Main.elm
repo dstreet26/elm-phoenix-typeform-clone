@@ -564,30 +564,60 @@ answerQuestion model =
 
 validateCurrentQuestion : Model -> Model
 validateCurrentQuestion model =
-    model |> setQuestionsDeep (Zipper.mapCurrent validateQuestion model.questionnaire.questions)
+    let
+        newQuestions =
+            model.questionnaire.questions
+                |> Zipper.mapCurrent validateQuestion
+                |> Zipper.mapCurrent validateRequired
+    in
+        model |> setQuestionsDeep newQuestions
+
+
+validateRequired : Question -> Question
+validateRequired question =
+    case question.validationResult of
+        Nothing ->
+            if question.isRequired then
+                if (toAnswer question) == "" then
+                    { question | validationResult = Just "Required" }
+                else
+                    { question | validationResult = Nothing }
+            else
+                { question | validationResult = Nothing }
+
+        Just "Required" ->
+            if (toAnswer question) == "" then
+                { question | validationResult = Just "Required" }
+            else
+                { question | validationResult = Nothing }
+
+        Just "Can't be blank" ->
+            if (toAnswer question) == "" then
+                { question | validationResult = Just "Required" }
+            else
+                { question | validationResult = Nothing }
+
+        Just x ->
+            question
 
 
 validateQuestion : Question -> Question
 validateQuestion question =
-    let
-        newValidation =
-            case question.questionType of
-                Text textOptions ->
-                    if String.length textOptions.internalValue > 0 then
-                        Nothing
-                    else
-                        Just "Can't be blank"
+    case question.questionType of
+        Text textOptions ->
+            if String.length textOptions.internalValue > 0 then
+                { question | validationResult = Nothing }
+            else
+                { question | validationResult = Just "Can't be blank" }
 
-                Email textOptions ->
-                    if Regex.contains (Regex.caseInsensitive (Regex.regex "^\\S+@\\S+\\.\\S+$")) (toAnswer question) then
-                        Nothing
-                    else
-                        Just "Mmm.. That email does not look valid"
+        Email textOptions ->
+            if Regex.contains (Regex.caseInsensitive (Regex.regex "^\\S+@\\S+\\.\\S+$")) (toAnswer question) then
+                { question | validationResult = Nothing }
+            else
+                { question | validationResult = Just "Mmm.. That email does not look valid" }
 
-                _ ->
-                    Nothing
-    in
-        { question | validationResult = newValidation }
+        _ ->
+            question
 
 
 toAnswer : Question -> String

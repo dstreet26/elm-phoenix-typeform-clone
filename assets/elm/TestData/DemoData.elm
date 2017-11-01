@@ -24,7 +24,7 @@ emptyQuestion =
     , questionText = "EMPTY QUESTION"
     , dependsOn = []
     , isFocused = False
-    , isRequired = False
+    , isRequired = True
     , validationResult = Nothing
     }
 
@@ -63,7 +63,7 @@ demoTextQuestion =
     , questionText = "**Hello**. What's your name?*"
     , dependsOn = []
     , isFocused = False
-    , isRequired = False
+    , isRequired = True
     , validationResult = Nothing
     }
 
@@ -82,7 +82,7 @@ demoAnotherTextQuestion =
     , questionText = "Enter anything, this is a placeholder"
     , dependsOn = []
     , isFocused = False
-    , isRequired = False
+    , isRequired = True
     , validationResult = Nothing
     }
 
@@ -112,7 +112,7 @@ demoSelectQuestion =
     , questionText = "Hi, {{question1answer}}. What's your **gender**?"
     , dependsOn = [ 1 ]
     , isFocused = False
-    , isRequired = False
+    , isRequired = True
     , validationResult = Nothing
     }
 
@@ -132,7 +132,7 @@ demoDropDownQuestion =
     , questionText = "{{question1answer}} + {{question2answer}}. Pick a country."
     , dependsOn = [ 1, 2 ]
     , isFocused = False
-    , isRequired = False
+    , isRequired = True
     , validationResult = Nothing
     }
 
@@ -172,7 +172,7 @@ demoPhotoQuestion =
     , questionText = "Which of these scenes makes you feel happiest?"
     , dependsOn = []
     , isFocused = False
-    , isRequired = False
+    , isRequired = True
     , validationResult = Nothing
     }
 
@@ -187,7 +187,7 @@ submitQuestion =
     , questionText = ""
     , dependsOn = []
     , isFocused = False
-    , isRequired = False
+    , isRequired = True
     , validationResult = Nothing
     }
 
