@@ -4,6 +4,8 @@ The goal of this project is to learn how to build something non-trivial with Elm
 
 ## Screenshot:
 
+![Demo 01](https://github.com/dstreet26/elm-phoenix-typeform-clone/raw/master/Demo_01.gif)
+
 ## Demo:
 
 ## TODO:
