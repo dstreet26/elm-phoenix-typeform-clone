@@ -1,7 +1,7 @@
 {
     "version": "1.0.0",
     "summary": "Elm Typeform Clone",
-    "repository": "https://github.com/dstreet26/imagemanagerprototype.git",
+    "repository": "https://github.com/dstreet26/elm-phoenix-typeform-clone",
     "license": "MIT",
     "source-directories": [
         "elm"

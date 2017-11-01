@@ -1,5 +1,8 @@
 {
-  "repository": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dstreet26/elm-phoenix-typeform-clone"
+  },
   "license": "MIT",
   "scripts": {
     "deploy": "brunch build --production",
