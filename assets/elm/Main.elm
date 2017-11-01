@@ -30,11 +30,6 @@ type alias Flags =
     }
 
 
-testValidationEmail : String -> ( Bool, String )
-testValidationEmail string =
-    ( False, "that didn't parse as an email." )
-
-
 type alias Model =
     { questionnaire : Questionnaire
     , isFormActivated : Bool
@@ -67,20 +62,6 @@ emptyModel =
     }
 
 
-emptyQuestionError1 : Question
-emptyQuestionError1 =
-    { questionNumber = 1
-    , questionType = Submit { buttonText = "N/A" }
-    , answer = ""
-    , isAnswered = False
-    , questionText = "Problem with question dependencies"
-    , dependsOn = []
-    , isFocused = False
-    , isRequired = False
-    , validationResult = Nothing
-    }
-
-
 init : Maybe Flags -> ( Model, Cmd Msg )
 init flags =
     emptyModel ! []
@@ -93,6 +74,7 @@ type Msg
     | FooterNext
     | FooterPrevious
     | ActivateForm
+    | SubmitQuestionnaire
     | KeyboardMsg Keyboard.Extra.Msg
     | TextQuestionInputChanged Question String
     | TextQuestionClicked Question
@@ -112,6 +94,13 @@ update msg model =
     case msg of
         NoOp ->
             ( model, Cmd.none )
+
+        SubmitQuestionnaire ->
+            let
+                newModel =
+                    model
+            in
+                ( model, Cmd.none )
 
         ColorSchemeClicked colorScheme ->
             let
@@ -399,7 +388,7 @@ scrollDirection model direction =
         filteredQuestions =
             model.questionnaire.questions
                 |> filterQuestions
-                |> Zipper.withDefault emptyQuestionError1
+                |> Zipper.withDefault emptyQuestion
                 |> Zipper.find (\x -> x.questionNumber == currentId)
                 |> Zipper.withDefault (Zipper.current model.questionnaire.questions)
 
@@ -537,60 +526,48 @@ answerQuestion model =
         answer =
             toAnswer currentQuestion
 
-        --validations =
-        --runValidations model
-        ( newModel, newCmdMsg ) =
-            case answer of
-                "" ->
-                    ( model, Cmd.none )
+        validatedModel =
+            validateCurrentQuestion model
 
-                value ->
+        validationResult =
+            (Zipper.current validatedModel.questionnaire.questions).validationResult
+
+        ( newModel, newCmdMsg ) =
+            case validationResult of
+                Just x ->
+                    ( validatedModel, Cmd.none )
+
+                Nothing ->
                     let
                         newModel =
-                            model
+                            validatedModel
                                 |> setCurrentAnswer answer
                                 |> setCurrentIsAnswered True
                                 |> setNumQuestionsAnswered
-                                |> runValidations
                     in
                         scrollDirection newModel Down
     in
         ( newModel, newCmdMsg )
 
 
-runValidations : Model -> Model
-runValidations model =
-    let
-        newModel =
-            model
-
-        newQuestions =
-            Zipper.mapCurrent validateQuestion model.questionnaire.questions
-    in
-        model |> setQuestionsDeep newQuestions
+validateCurrentQuestion : Model -> Model
+validateCurrentQuestion model =
+    model |> setQuestionsDeep (Zipper.mapCurrent validateQuestion model.questionnaire.questions)
 
 
 validateQuestion : Question -> Question
 validateQuestion question =
     let
         newValidation =
-            if question.isRequired then
-                case question.answer of
-                    "" ->
-                        Just "Required"
-
-                    _ ->
+            case question.questionType of
+                Email textOptions ->
+                    if Regex.contains (Regex.caseInsensitive (Regex.regex "^\\S+@\\S+\\.\\S+$")) (toAnswer question) then
                         Nothing
-            else
-                case question.questionType of
-                    Email textOptions ->
-                        if Regex.contains (Regex.caseInsensitive (Regex.regex "^\\S+@\\S+\\.\\S+$")) question.answer then
-                            Nothing
-                        else
-                            Just "not an email"
+                    else
+                        Just "not an email"
 
-                    _ ->
-                        Nothing
+                _ ->
+                    Nothing
     in
         { question | validationResult = newValidation }
 
@@ -968,8 +945,9 @@ viewQuestions model questions colors =
         (Zipper.toList questions)
 
 
+viewValidation : Model -> Question -> ColorScheme -> Html Msg
 viewValidation model question colors =
-    div [] [ text "unvalidated" ]
+    div [ class "bg-dark-red white di pv2 ph2 ml3" ] [ text "Mmm.. That email does not look valid" ]
 
 
 viewQuestion : Model -> Question -> ColorScheme -> Html Msg
@@ -995,11 +973,12 @@ viewQuestion model question colors =
             viewSubmit model question options colors
 
 
+questionContainerClasses : Question -> Html.Attribute msg
 questionContainerClasses question =
     if question.isFocused then
-        class "pt6  f3"
+        class "pt6 f3"
     else
-        class "pt6  f3 o-30"
+        class "pt6 f3 o-30"
 
 
 viewTextQuestion : Question -> TextOptions -> ColorScheme -> Html Msg
@@ -1209,7 +1188,7 @@ viewTextButton colors buttonText questionNumber =
 submitButton : ColorScheme -> String -> Html Msg
 submitButton colors buttonText =
     button
-        ([ onClick NoOp ]
+        ([ onClick SubmitQuestionnaire ]
             ++ buttonTopClasses
             ++ hoverStyles colors
         )
