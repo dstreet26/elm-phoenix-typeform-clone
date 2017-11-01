@@ -41,6 +41,7 @@ type alias Model =
     , currentHtmlFocus : String
     , colorSchemes : List ColorScheme
     , isSubmitted : Bool
+    , numInvalid : Int
     }
 
 
@@ -61,6 +62,7 @@ emptyModel =
     , currentHtmlFocus = ""
     , colorSchemes = allColors
     , isSubmitted = False
+    , numInvalid = 0
     }
 
 
@@ -536,13 +538,13 @@ submitQuestionnaire model =
                 (Zipper.toList validatedModel.questionnaire.questions)
 
         filteredQuestionsLength =
-            List.length filteredQuestions
+            (List.length filteredQuestions) - 1
 
         newModel =
-            if filteredQuestionsLength > 1 then
-                validatedModel
+            if filteredQuestionsLength > 0 then
+                { validatedModel | numInvalid = filteredQuestionsLength }
             else
-                { validatedModel | isSubmitted = True }
+                { validatedModel | isSubmitted = True, numInvalid = 0 }
     in
         ( newModel, Cmd.none )
 
@@ -1295,16 +1297,6 @@ viewTextButton colors buttonText questionNumber =
         ]
 
 
-submitButton : ColorScheme -> String -> Html Msg
-submitButton colors buttonText =
-    button
-        ([ onClick SubmitQuestionnaire ]
-            ++ buttonTopClasses
-            ++ hoverStyles colors
-        )
-        [ span [] [ text buttonText ] ]
-
-
 viewFooterButton : ColorScheme -> Bool -> Bool -> msg -> Html msg
 viewFooterButton colors isUp isEnabled action =
     if isEnabled then
@@ -1385,7 +1377,23 @@ questionText colors questionNumber body =
 viewSubmit : Model -> Question -> SubmitOptions -> ColorScheme -> Html Msg
 viewSubmit model question options colors =
     div [ class "f3  pt6 center tc vh-50", id (questionIdString question.questionNumber) ]
-        [ submitButton model.questionnaire.colorScheme options.buttonText
+        [ if model.numInvalid > 0 then
+            div []
+                [ div [ class "mb3", style [ ( "color", "#FFFFFF" ), ( "backgroundColor", "#990000" ) ] ] [ text (toString model.numInvalid ++ " questions are invalid") ]
+                , button
+                    ([ onClick SubmitQuestionnaire ]
+                        ++ buttonTopClasses
+                        ++ hover_ [ ( "color", "#FF8080" ) ] [ ( "backgroundColor", "#990000", "#CC0000" ) ]
+                    )
+                    [ span [] [ text "Review" ] ]
+                ]
+          else
+            button
+                ([ onClick SubmitQuestionnaire ]
+                    ++ buttonTopClasses
+                    ++ hoverStyles colors
+                )
+                [ span [] [ text options.buttonText ] ]
         , buttonAsideText "press ENTER" model.questionnaire.colorScheme.secondaryText
         ]
 
