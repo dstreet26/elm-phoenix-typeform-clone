@@ -2,11 +2,6 @@
 </div>
 <script src="<%= static_path(@conn, "/compiled_elm/main.js") %>"></script>
 <script>
-	
-
-
-</script>
-<script>
 let embedElement = document.getElementById('elm-main')
 let elmApp = Elm.Main.embed(embedElement, {
     user: 'testuser',
