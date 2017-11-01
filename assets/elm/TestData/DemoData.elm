@@ -79,7 +79,7 @@ demoAnotherTextQuestion =
             }
     , answer = ""
     , isAnswered = False
-    , questionText = "Enter anything, this is a placeholder"
+    , questionText = "Enter an Email"
     , dependsOn = []
     , isFocused = False
     , isRequired = True
