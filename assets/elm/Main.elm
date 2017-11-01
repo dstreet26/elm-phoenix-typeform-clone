@@ -102,11 +102,7 @@ update msg model =
             ( emptyModel, Cmd.none )
 
         SubmitQuestionnaire ->
-            let
-                newModel =
-                    model
-            in
-                ( model, Cmd.none )
+            submitQuestionnaire model
 
         ColorSchemeClicked colorScheme ->
             let
@@ -525,8 +521,30 @@ setCurrentIsAnswered bool model =
 
 submitQuestionnaire : Model -> ( Model, Cmd Msg )
 submitQuestionnaire model =
-    --Run validations on all the isRequired
-    ( { model | isSubmitted = True }, Cmd.none )
+    let
+        validatedModel =
+            validateAllQuestions model
+
+        filteredQuestions =
+            List.filter
+                (\x ->
+                    if x.validationResult == Nothing then
+                        False
+                    else
+                        True
+                )
+                (Zipper.toList validatedModel.questionnaire.questions)
+
+        filteredQuestionsLength =
+            List.length filteredQuestions
+
+        newModel =
+            if filteredQuestionsLength > 1 then
+                validatedModel
+            else
+                { validatedModel | isSubmitted = True }
+    in
+        ( newModel, Cmd.none )
 
 
 answerQuestion : Model -> ( Model, Cmd Msg )
@@ -560,6 +578,17 @@ answerQuestion model =
                         scrollDirection newModel Down
     in
         ( newModel, newCmdMsg )
+
+
+validateAllQuestions : Model -> Model
+validateAllQuestions model =
+    let
+        newQuestions =
+            model.questionnaire.questions
+                |> Zipper.map validateQuestion
+                |> Zipper.map validateRequired
+    in
+        model |> setQuestionsDeep newQuestions
 
 
 validateCurrentQuestion : Model -> Model
