@@ -9,6 +9,8 @@
     <meta name="author" content="David Streeter" />
     <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tachyons/4.9.0/tachyons.min.css" rel="stylesheet">
+    
 
     <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
     <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
