@@ -40,6 +40,7 @@ type alias Model =
     , pressedKeys : List Key
     , currentHtmlFocus : String
     , colorSchemes : List ColorScheme
+    , isSubmitted : Bool
     }
 
 
@@ -59,6 +60,7 @@ emptyModel =
     , pressedKeys = []
     , currentHtmlFocus = ""
     , colorSchemes = allColors
+    , isSubmitted = False
     }
 
 
@@ -82,6 +84,7 @@ type Msg
     | FDMsg FD.Msg
     | InputFocusResult (Result Dom.Error ())
     | ColorSchemeClicked ColorScheme
+    | ResetQuestionnaire
 
 
 type Direction
@@ -94,6 +97,9 @@ update msg model =
     case msg of
         NoOp ->
             ( model, Cmd.none )
+
+        ResetQuestionnaire ->
+            ( emptyModel, Cmd.none )
 
         SubmitQuestionnaire ->
             let
@@ -517,6 +523,12 @@ setCurrentIsAnswered bool model =
         model |> setQuestionsDeep newQuestions
 
 
+submitQuestionnaire : Model -> ( Model, Cmd Msg )
+submitQuestionnaire model =
+    --Run validations on all the isRequired
+    ( { model | isSubmitted = True }, Cmd.none )
+
+
 answerQuestion : Model -> ( Model, Cmd Msg )
 answerQuestion model =
     let
@@ -560,11 +572,17 @@ validateQuestion question =
     let
         newValidation =
             case question.questionType of
+                Text textOptions ->
+                    if String.length textOptions.internalValue > 0 then
+                        Nothing
+                    else
+                        Just "Can't be blank"
+
                 Email textOptions ->
                     if Regex.contains (Regex.caseInsensitive (Regex.regex "^\\S+@\\S+\\.\\S+$")) (toAnswer question) then
                         Nothing
                     else
-                        Just "not an email"
+                        Just "Mmm.. That email does not look valid"
 
                 _ ->
                     Nothing
@@ -687,7 +705,12 @@ handleSelectLetter model letter =
 
 handleNavigationEnter : Model -> ( Model, Cmd Msg )
 handleNavigationEnter model =
-    answerQuestion model
+    case (Zipper.current model.questionnaire.questions).questionType of
+        Submit options ->
+            submitQuestionnaire model
+
+        _ ->
+            answerQuestion model
 
 
 activateForm : Model -> ( Model, Cmd Msg )
@@ -854,7 +877,35 @@ view : Model -> Html Msg
 view model =
     div [ class "fl w-100 montserrat" ]
         [ viewControlPanel model
-        , demo model
+        , if model.isSubmitted then
+            viewResult model
+          else
+            demo model
+        ]
+
+
+viewResult : Model -> Html Msg
+viewResult model =
+    div [ class "pa6 f1" ]
+        [ div [] [ text "Thanks for making it through the demo! Here are your answers:" ]
+        , div []
+            (List.filterMap
+                (\question ->
+                    case question.questionType of
+                        Submit options ->
+                            Nothing
+
+                        _ ->
+                            Just (div [] [ text ("Question " ++ toString question.questionNumber ++ ": " ++ (toAnswer question)) ])
+                )
+                (Zipper.toList model.questionnaire.questions)
+            )
+        , button
+            ([ onClick ResetQuestionnaire ]
+                ++ buttonTopClasses
+                ++ hoverStyles model.questionnaire.colorScheme
+            )
+            [ span [] [ text "Reset" ] ]
         ]
 
 
@@ -947,7 +998,7 @@ viewQuestions model questions colors =
 
 viewValidation : Model -> Question -> ColorScheme -> Html Msg
 viewValidation model question colors =
-    div [ class "bg-dark-red white di pv2 ph2 ml3" ] [ text "Mmm.. That email does not look valid" ]
+    div [ class "bg-dark-red white di pv2 ph2 ml3" ] [ text (question.validationResult |> Maybe.withDefault "N/A") ]
 
 
 viewQuestion : Model -> Question -> ColorScheme -> Html Msg
