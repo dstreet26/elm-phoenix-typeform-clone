@@ -13,9 +13,7 @@
         "elm-lang/html": "2.0.0 <= v < 3.0.0",
         "elm-lang/http": "1.0.0 <= v < 2.0.0",
         "elm-lang/keyboard": "1.0.1 <= v < 2.0.0",
-        "eskimoblood/elm-color-extra": "5.0.0 <= v < 6.0.0",
         "identicalsnowflake/elm-dynamic-style": "2.0.0 <= v < 3.0.0",
-        "justgage/tachyons-elm": "2.1.0 <= v < 3.0.0",
         "ohanhi/keyboard-extra": "3.0.4 <= v < 4.0.0",
         "pablohirafuji/elm-markdown": "2.0.4 <= v < 3.0.0",
         "wernerdegroot/listzipper": "3.0.0 <= v < 4.0.0"
