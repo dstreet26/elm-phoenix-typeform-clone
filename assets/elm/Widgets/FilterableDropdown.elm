@@ -174,6 +174,7 @@ view model colors questionNumber =
         ]
 
 
+renderArrow : Model -> Html Msg
 renderArrow { showList } =
     if showList then
         div [ onClick ArrowClicked, class "fa fa-chevron-up pointer f1 " ]
@@ -183,6 +184,7 @@ renderArrow { showList } =
             []
 
 
+theList : Model -> ColorScheme -> Html Msg
 theList model colors =
     div [ class "absolute nano  z-2 w-30" ]
         [ ul [ class "list pl0 f3  overflow-auto   vh-50 " ]
@@ -193,6 +195,7 @@ theList model colors =
         ]
 
 
+viewLiNormal : String -> ColorScheme -> Html Msg
 viewLiNormal choice colors =
     li
         ([ onClick (SelectChoice choice), class " ba   br2 mv2 ph2 pv2 pointer " ]
@@ -201,6 +204,7 @@ viewLiNormal choice colors =
         [ text choice ]
 
 
+viewLiHighlighted : String -> ColorScheme -> Html Msg
 viewLiHighlighted choice colors =
     li
         ([ onClick (SelectChoice choice), class " ba   br2 mv2 ph2 pv2 pointer " ]
