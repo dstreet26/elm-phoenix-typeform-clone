@@ -40,8 +40,6 @@ Static demo build running at: [https://dstreet26.github.io/elm-phoenix-typeform-
 
 `npm i`
 
-`elm-package install -y`
-
 `cd ..`
 
 `mix phx.server`
