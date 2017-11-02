@@ -939,15 +939,15 @@ view model =
     div [ class "fl w-100 montserrat" ]
         [ viewControlPanel model
         , if model.isSubmitted then
-            viewResult model
+            viewResult model model.questionnaire.colorScheme
           else
             demo model
         ]
 
 
-viewResult : Model -> Html Msg
-viewResult model =
-    div [ class "pa6 f1" ]
+viewResult : Model -> ColorScheme -> Html Msg
+viewResult model colors =
+    div [ class "pa6-l pa2 f2-l f3", style [ ( "color", colors.mainText ), ( "backgroundColor", colors.background ) ] ]
         [ div [] [ text "Thanks for making it through the demo! Here are your answers:" ]
         , div []
             (List.filterMap
@@ -964,7 +964,7 @@ viewResult model =
         , button
             ([ onClick ResetQuestionnaire ]
                 ++ buttonTopClasses
-                ++ hoverStyles model.questionnaire.colorScheme
+                ++ hoverStyles colors
             )
             [ span [] [ text "Reset" ] ]
         ]
