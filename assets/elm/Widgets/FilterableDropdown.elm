@@ -155,7 +155,7 @@ view model colors questionNumber =
                         [ onKeyDown KeyDown
                         , onClick InputClicked
                         , onInput InputChanged
-                        , class "input reset bn  w-90 pv3 f3 bg-transparent on"
+                        , class "input reset bn  w-90 pv3 h1 h3-l f3 bg-transparent on"
                         , style [ ( "color", colors.secondaryText ) ]
                         , placeholder "Type or select an option"
                         , type_ "text"
@@ -177,16 +177,16 @@ view model colors questionNumber =
 renderArrow : Model -> Html Msg
 renderArrow { showList } =
     if showList then
-        div [ onClick ArrowClicked, class "fa fa-chevron-up pointer f1 " ]
+        div [ onClick ArrowClicked, class "fa fa-chevron-up pointer f1-l f3 " ]
             []
     else
-        div [ onClick ArrowClicked, class "fa fa-chevron-down pointer f1 " ]
+        div [ onClick ArrowClicked, class "fa fa-chevron-down pointer f1-l f3  " ]
             []
 
 
 theList : Model -> ColorScheme -> Html Msg
 theList model colors =
-    div [ class "absolute nano  z-2 w-30" ]
+    div [ class "absolute nano pt2 pt0-l z-2 w-30-l w-90" ]
         [ ul [ class "list pl0 f3  overflow-auto   vh-50 " ]
             (List.map (\choice -> viewLiNormal choice colors) (Zipper.before model.filteredChoicesZipped)
                 ++ [ viewLiHighlighted (Zipper.current model.filteredChoicesZipped) colors ]

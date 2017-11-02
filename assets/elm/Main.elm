@@ -972,7 +972,7 @@ viewResult model =
 
 viewControlPanel : Model -> Html Msg
 viewControlPanel model =
-    div [ class "bg-white pa6 bb bw2" ]
+    div [ class "cf bg-white pa6-l pa2 bb bw2" ]
         [ div [ class "fl w-50" ]
             [ h2 []
                 [ text "Elm Typeform Clone"
@@ -1137,7 +1137,7 @@ viewSelectQuestion model question options colors =
             ]
             [ questionText demoData.colorScheme question.questionNumber (parseQuestionText model question.questionText)
             , ul
-                [ class "list mw6"
+                [ class "list mw6 nl4 ml0-ns"
                 , style [ ( "color", colors.secondaryText ) ]
                 , id (inputIdString question.questionNumber)
                 ]
@@ -1361,7 +1361,7 @@ hoverStyles colorScheme =
 questionText : ColorScheme -> Int -> String -> Html msg
 questionText colors questionNumber body =
     div [ class "" ]
-        [ span [ class "pr2 fl" ]
+        [ span [ class "pr2-l fl f2-l f3" ]
             [ span [ style [ ( "color", colors.secondaryText ) ] ]
                 [ span [ class "pr1" ]
                     [ text (toString questionNumber) ]
