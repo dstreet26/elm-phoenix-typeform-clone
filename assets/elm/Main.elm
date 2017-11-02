@@ -1135,7 +1135,7 @@ viewSelectQuestion model question options colors =
             [ questionContainerClasses question
             , id (questionIdString question.questionNumber)
             ]
-            [ questionText demoData.colorScheme question.questionNumber (parseQuestionText model question.questionText)
+            [ questionText colors question.questionNumber (parseQuestionText model question.questionText)
             , ul
                 [ class "list mw6 nl4 ml0-ns"
                 , style [ ( "color", colors.secondaryText ) ]
@@ -1196,7 +1196,7 @@ viewDropdownQuestion model question options colors =
             [ questionContainerClasses question
             , id (questionIdString question.questionNumber)
             ]
-            [ questionText demoData.colorScheme question.questionNumber (parseQuestionText model question.questionText)
+            [ questionText colors question.questionNumber (parseQuestionText model question.questionText)
             , div
                 [ class "mw7 pl3"
                 , style [ ( "color", colors.secondaryText ) ]
