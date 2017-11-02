@@ -1,3 +1,20 @@
+
+
+
+
+
+
+
+
+.montserrat {
+    font-family: 'Montserrat', sans-serif
+}
+
+
+.alert {
+	margin: 0px;
+}
+
 .input--hoshi {
     position: relative;
     /*z-index: 1;*/
@@ -99,3 +116,5 @@
 .hoshi-color-4::after {
     border-color: #275b62;
 }
+
+/*# sourceMappingURL=app.css.map*/
