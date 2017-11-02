@@ -23415,7 +23415,7 @@ var _dstreet26$elm_phoenix_typeform_clone$TestData_Countries$countries = {
 	}
 };
 
-var _dstreet26$elm_phoenix_typeform_clone$TestData_ColorSchemes$gusher = {mainText: '#FFFFFF', background: '#C85976', buttonText: '#808080', buttonBackground: '#FFFFFF', buttonHover: '#E6E6E6', secondaryText: '#F6FFB5', selectBackground: '#E7FFB2', selectHover: '#CE7A82', selectLetterBackground: '#CF8084', footerBackground: '#BF5570'};
+var _dstreet26$elm_phoenix_typeform_clone$TestData_ColorSchemes$gusher = {mainText: '#FFFFFF', background: '#C85976', buttonText: '#808080', buttonBackground: '#FFFFFF', buttonHover: '#E6E6E6', secondaryText: '#F6FFB5', selectBackground: '#CA6178', selectHover: '#CE7A82', selectLetterBackground: '#CF8084', footerBackground: '#BF5570'};
 var _dstreet26$elm_phoenix_typeform_clone$TestData_ColorSchemes$insight = {mainText: '#C9A538', background: '#FAF2DB', buttonText: '#634E0E', buttonBackground: '#E4BB3F', buttonHover: '#EACB6C', secondaryText: '#7A7A7A', selectBackground: '#F4EDD7', selectHover: '#E0DAC7', selectLetterBackground: '#DBD6C4', footerBackground: '#F5EDD7'};
 var _dstreet26$elm_phoenix_typeform_clone$TestData_ColorSchemes$pinky = {mainText: '#FFFFFF', background: '#C384C5', buttonText: '#6B6B6B', buttonBackground: '#EBEBEB', buttonHover: '#D2D2D2', secondaryText: '#F6FFB5', selectBackground: '#C68AC4', selectHover: '#CD9DC2', selectLetterBackground: '#CFA2C1', footerBackground: '#BB7FBD'};
 var _dstreet26$elm_phoenix_typeform_clone$TestData_ColorSchemes$lightBlue = {mainText: '#5fb4bf', background: '#E5F3F5', buttonText: '#275b62', buttonBackground: '#73BEC8', buttonHover: '#98cfd6', secondaryText: '#696969', selectBackground: '#DFEDEE', selectHover: '#CCD7D9', selectLetterBackground: '#C7D2D4', footerBackground: '#E1EEF0'};
@@ -23712,7 +23712,7 @@ var _dstreet26$elm_phoenix_typeform_clone$Widgets_FilterableDropdown$renderArrow
 			_0: _elm_lang$html$Html_Events$onClick(_dstreet26$elm_phoenix_typeform_clone$Widgets_FilterableDropdown$ArrowClicked),
 			_1: {
 				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$class('fa fa-chevron-up pointer f1 '),
+				_0: _elm_lang$html$Html_Attributes$class('fa fa-chevron-up pointer f1-l f3 '),
 				_1: {ctor: '[]'}
 			}
 		},
@@ -23723,7 +23723,7 @@ var _dstreet26$elm_phoenix_typeform_clone$Widgets_FilterableDropdown$renderArrow
 			_0: _elm_lang$html$Html_Events$onClick(_dstreet26$elm_phoenix_typeform_clone$Widgets_FilterableDropdown$ArrowClicked),
 			_1: {
 				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$class('fa fa-chevron-down pointer f1 '),
+				_0: _elm_lang$html$Html_Attributes$class('fa fa-chevron-down pointer f1-l f3  '),
 				_1: {ctor: '[]'}
 			}
 		},
@@ -23802,7 +23802,7 @@ var _dstreet26$elm_phoenix_typeform_clone$Widgets_FilterableDropdown$theList = F
 			_elm_lang$html$Html$div,
 			{
 				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$class('absolute nano  z-2 w-30'),
+				_0: _elm_lang$html$Html_Attributes$class('absolute nano pt2 pt0-l z-2 w-30-l w-90'),
 				_1: {ctor: '[]'}
 			},
 			{
@@ -23892,7 +23892,7 @@ var _dstreet26$elm_phoenix_typeform_clone$Widgets_FilterableDropdown$view = F3(
 														_0: _elm_lang$html$Html_Events$onInput(_dstreet26$elm_phoenix_typeform_clone$Widgets_FilterableDropdown$InputChanged),
 														_1: {
 															ctor: '::',
-															_0: _elm_lang$html$Html_Attributes$class('input reset bn  w-90 pv3 f3 bg-transparent on'),
+															_0: _elm_lang$html$Html_Attributes$class('input reset bn  w-90 pv3 h1 h3-l f3 bg-transparent on'),
 															_1: {
 																ctor: '::',
 																_0: _elm_lang$html$Html_Attributes$style(
@@ -24011,7 +24011,7 @@ var _dstreet26$elm_phoenix_typeform_clone$Main$questionText = F3(
 					_elm_lang$html$Html$span,
 					{
 						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class('pr2 fl'),
+						_0: _elm_lang$html$Html_Attributes$class('pr2-l fl f2-l f3'),
 						_1: {ctor: '[]'}
 					},
 					{
@@ -24409,7 +24409,7 @@ var _dstreet26$elm_phoenix_typeform_clone$Main$viewDropdownQuestion = F4(
 						ctor: '::',
 						_0: A3(
 							_dstreet26$elm_phoenix_typeform_clone$Main$questionText,
-							_dstreet26$elm_phoenix_typeform_clone$TestData_DemoData$demoData.colorScheme,
+							colors,
 							question.questionNumber,
 							A2(_dstreet26$elm_phoenix_typeform_clone$Main$parseQuestionText, model, question.questionText)),
 						_1: {
@@ -24983,90 +24983,104 @@ var _dstreet26$elm_phoenix_typeform_clone$Main$Model = function (a) {
 	};
 };
 var _dstreet26$elm_phoenix_typeform_clone$Main$ResetQuestionnaire = {ctor: 'ResetQuestionnaire'};
-var _dstreet26$elm_phoenix_typeform_clone$Main$viewResult = function (model) {
-	return A2(
-		_elm_lang$html$Html$div,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('pa6 f1'),
-			_1: {ctor: '[]'}
-		},
-		{
-			ctor: '::',
-			_0: A2(
-				_elm_lang$html$Html$div,
-				{ctor: '[]'},
-				{
+var _dstreet26$elm_phoenix_typeform_clone$Main$viewResult = F2(
+	function (model, colors) {
+		return A2(
+			_elm_lang$html$Html$div,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$class('pa6-l pa2 f2-l f3'),
+				_1: {
 					ctor: '::',
-					_0: _elm_lang$html$Html$text('Thanks for making it through the demo! Here are your answers:'),
+					_0: _elm_lang$html$Html_Attributes$style(
+						{
+							ctor: '::',
+							_0: {ctor: '_Tuple2', _0: 'color', _1: colors.mainText},
+							_1: {
+								ctor: '::',
+								_0: {ctor: '_Tuple2', _0: 'backgroundColor', _1: colors.background},
+								_1: {ctor: '[]'}
+							}
+						}),
 					_1: {ctor: '[]'}
-				}),
-			_1: {
+				}
+			},
+			{
 				ctor: '::',
 				_0: A2(
 					_elm_lang$html$Html$div,
 					{ctor: '[]'},
-					A2(
-						_elm_lang$core$List$filterMap,
-						function (question) {
-							var _p19 = question.questionType;
-							if (_p19.ctor === 'Submit') {
-								return _elm_lang$core$Maybe$Nothing;
-							} else {
-								return _elm_lang$core$Maybe$Just(
-									A2(
-										_elm_lang$html$Html$div,
-										{ctor: '[]'},
-										{
-											ctor: '::',
-											_0: _elm_lang$html$Html$text(
-												A2(
-													_elm_lang$core$Basics_ops['++'],
-													'Question ',
-													A2(
-														_elm_lang$core$Basics_ops['++'],
-														_elm_lang$core$Basics$toString(question.questionNumber),
-														A2(
-															_elm_lang$core$Basics_ops['++'],
-															': ',
-															_dstreet26$elm_phoenix_typeform_clone$Main$toAnswer(question))))),
-											_1: {ctor: '[]'}
-										}));
-							}
-						},
-						_wernerdegroot$listzipper$List_Zipper$toList(model.questionnaire.questions))),
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html$text('Thanks for making it through the demo! Here are your answers:'),
+						_1: {ctor: '[]'}
+					}),
 				_1: {
 					ctor: '::',
 					_0: A2(
-						_elm_lang$html$Html$button,
+						_elm_lang$html$Html$div,
+						{ctor: '[]'},
 						A2(
-							_elm_lang$core$Basics_ops['++'],
-							{
-								ctor: '::',
-								_0: _elm_lang$html$Html_Events$onClick(_dstreet26$elm_phoenix_typeform_clone$Main$ResetQuestionnaire),
-								_1: {ctor: '[]'}
+							_elm_lang$core$List$filterMap,
+							function (question) {
+								var _p19 = question.questionType;
+								if (_p19.ctor === 'Submit') {
+									return _elm_lang$core$Maybe$Nothing;
+								} else {
+									return _elm_lang$core$Maybe$Just(
+										A2(
+											_elm_lang$html$Html$div,
+											{ctor: '[]'},
+											{
+												ctor: '::',
+												_0: _elm_lang$html$Html$text(
+													A2(
+														_elm_lang$core$Basics_ops['++'],
+														'Question ',
+														A2(
+															_elm_lang$core$Basics_ops['++'],
+															_elm_lang$core$Basics$toString(question.questionNumber),
+															A2(
+																_elm_lang$core$Basics_ops['++'],
+																': ',
+																_dstreet26$elm_phoenix_typeform_clone$Main$toAnswer(question))))),
+												_1: {ctor: '[]'}
+											}));
+								}
 							},
+							_wernerdegroot$listzipper$List_Zipper$toList(model.questionnaire.questions))),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$button,
 							A2(
 								_elm_lang$core$Basics_ops['++'],
-								_dstreet26$elm_phoenix_typeform_clone$Main$buttonTopClasses,
-								_dstreet26$elm_phoenix_typeform_clone$Main$hoverStyles(model.questionnaire.colorScheme))),
-						{
-							ctor: '::',
-							_0: A2(
-								_elm_lang$html$Html$span,
-								{ctor: '[]'},
 								{
 									ctor: '::',
-									_0: _elm_lang$html$Html$text('Reset'),
+									_0: _elm_lang$html$Html_Events$onClick(_dstreet26$elm_phoenix_typeform_clone$Main$ResetQuestionnaire),
 									_1: {ctor: '[]'}
-								}),
-							_1: {ctor: '[]'}
-						}),
-					_1: {ctor: '[]'}
+								},
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									_dstreet26$elm_phoenix_typeform_clone$Main$buttonTopClasses,
+									_dstreet26$elm_phoenix_typeform_clone$Main$hoverStyles(colors))),
+							{
+								ctor: '::',
+								_0: A2(
+									_elm_lang$html$Html$span,
+									{ctor: '[]'},
+									{
+										ctor: '::',
+										_0: _elm_lang$html$Html$text('Reset'),
+										_1: {ctor: '[]'}
+									}),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					}
 				}
-			}
-		});
-};
+			});
+	});
 var _dstreet26$elm_phoenix_typeform_clone$Main$ColorSchemeClicked = function (a) {
 	return {ctor: 'ColorSchemeClicked', _0: a};
 };
@@ -25112,7 +25126,7 @@ var _dstreet26$elm_phoenix_typeform_clone$Main$viewControlPanel = function (mode
 		_elm_lang$html$Html$div,
 		{
 			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('bg-white pa6 bb bw2'),
+			_0: _elm_lang$html$Html_Attributes$class('cf bg-white pa6-l pa2 bb bw2'),
 			_1: {ctor: '[]'}
 		},
 		{
@@ -25494,7 +25508,7 @@ var _dstreet26$elm_phoenix_typeform_clone$Main$viewSelectQuestion = F4(
 						ctor: '::',
 						_0: A3(
 							_dstreet26$elm_phoenix_typeform_clone$Main$questionText,
-							_dstreet26$elm_phoenix_typeform_clone$TestData_DemoData$demoData.colorScheme,
+							colors,
 							question.questionNumber,
 							A2(_dstreet26$elm_phoenix_typeform_clone$Main$parseQuestionText, model, question.questionText)),
 						_1: {
@@ -25503,7 +25517,7 @@ var _dstreet26$elm_phoenix_typeform_clone$Main$viewSelectQuestion = F4(
 								_elm_lang$html$Html$ul,
 								{
 									ctor: '::',
-									_0: _elm_lang$html$Html_Attributes$class('list mw6'),
+									_0: _elm_lang$html$Html_Attributes$class('list mw6 nl4 ml0-ns'),
 									_1: {
 										ctor: '::',
 										_0: _elm_lang$html$Html_Attributes$style(
@@ -26327,7 +26341,7 @@ var _dstreet26$elm_phoenix_typeform_clone$Main$view = function (model) {
 			_0: _dstreet26$elm_phoenix_typeform_clone$Main$viewControlPanel(model),
 			_1: {
 				ctor: '::',
-				_0: model.isSubmitted ? _dstreet26$elm_phoenix_typeform_clone$Main$viewResult(model) : _dstreet26$elm_phoenix_typeform_clone$Main$demo(model),
+				_0: model.isSubmitted ? A2(_dstreet26$elm_phoenix_typeform_clone$Main$viewResult, model, model.questionnaire.colorScheme) : _dstreet26$elm_phoenix_typeform_clone$Main$demo(model),
 				_1: {ctor: '[]'}
 			}
 		});
