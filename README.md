@@ -8,6 +8,8 @@ The goal of this project is to learn how to build something non-trivial with Elm
 
 ## Demo:
 
+Static demo build running at: [https://dstreet26.github.io/elm-phoenix-typeform-clone/](https://dstreet26.github.io/elm-phoenix-typeform-clone/)
+
 (Heroku demo link coming soon!)
 
 ## TODO:
